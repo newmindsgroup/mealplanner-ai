@@ -42,7 +42,7 @@ export default defineConfig({
     exclude: ['@zxing/library', '@zxing/browser']
   },
   build: {
-    outDir: 'public',
+    outDir: 'dist',
     assetsDir: 'assets',
     emptyOutDir: true,
     sourcemap: false,
