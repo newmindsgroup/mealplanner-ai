@@ -1,0 +1,18 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Check Console</title>
+</head>
+<body>
+  <h1>Open Browser Console (F12) to see errors</h1>
+  <script>
+    console.log('Test script loaded');
+    fetch('http://localhost:5173')
+      .then(r => r.text())
+      .then(html => {
+        console.log('HTML loaded:', html.substring(0, 200));
+      })
+      .catch(e => console.error('Error:', e));
+  </script>
+</body>
+</html>

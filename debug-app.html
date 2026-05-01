@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Debug App - Check Console</title>
+  <style>
+    body {
+      font-family: monospace;
+      padding: 20px;
+      background: #1a1a1a;
+      color: #00ff00;
+    }
+    .log {
+      margin: 10px 0;
+      padding: 10px;
+      background: #2a2a2a;
+      border-left: 3px solid #00ff00;
+    }
+    .error {
+      border-left-color: #ff0000;
+      color: #ff6b6b;
+    }
+    button {
+      background: #00ff00;
+      color: #000;
+      border: none;
+      padding: 10px 20px;
+      margin: 5px;
+      cursor: pointer;
+      font-weight: bold;
+    }
+  </style>
+</head>
+<body>
+  <h1>🔍 App Debugger</h1>
+  <div id="logs"></div>
+  <button onclick="testApp()">Test App Load</button>
+  <button onclick="clearStorage()">Clear Storage</button>
+  <button onclick="checkConsole()">Check Console Errors</button>
+
+  <script>
+    const logs = document.getElementById('logs');
+    
+    function addLog(message, type = 'info') {
+      const div = document.createElement('div');
+      div.className = `log ${type}`;
+      div.textContent = `[${new Date().toLocaleTimeString()}] ${message}`;
+      logs.appendChild(div);
+    }
+
+    function testApp() {
+      addLog('Testing app load...', 'info');
+      
+      fetch('http://localhost:5173')
+        .then(r => {
+          addLog(`Status: ${r.status} ${r.statusText}`, r.ok ? 'info' : 'error');
+          return r.text();
+        })
+        .then(html => {
+          addLog(`HTML length: ${html.length} bytes`, 'info');
+          if (html.includes('root')) {
+            addLog('✅ Root element found in HTML', 'info');
+          } else {
+            addLog('❌ Root element NOT found in HTML', 'error');
+          }
+          if (html.includes('main.tsx')) {
+            addLog('✅ main.tsx script found', 'info');
+          } else {
+            addLog('❌ main.tsx script NOT found', 'error');
+          }
+        })
+        .catch(e => {
+          addLog(`❌ Error: ${e.message}`, 'error');
+        });
+    }
+
+    function clearStorage() {
+      try {
+        localStorage.clear();
+        addLog('✅ localStorage cleared', 'info');
+      } catch (e) {
+        addLog(`❌ Error clearing storage: ${e.message}`, 'error');
+      }
+    }
+
+    function checkConsole() {
+      addLog('Open browser console (F12) to see JavaScript errors', 'info');
+      addLog('Check for:', 'info');
+      addLog('  - Import/module errors', 'info');
+      addLog('  - TypeScript compilation errors', 'info');
+      addLog('  - React rendering errors', 'info');
+      addLog('  - Store initialization errors', 'info');
+    }
+
+    // Auto-test on load
+    window.addEventListener('load', () => {
+      addLog('Debugger loaded', 'info');
+      testApp();
+    });
+  </script>
+</body>
+</html>
+

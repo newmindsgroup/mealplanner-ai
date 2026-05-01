@@ -1,0 +1,177 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Clear LocalStorage - Meal Plan Assistant</title>
+  <style>
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+      max-width: 600px;
+      margin: 50px auto;
+      padding: 20px;
+      background: #f5f5f5;
+    }
+    .container {
+      background: white;
+      padding: 30px;
+      border-radius: 8px;
+      box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+    }
+    h1 {
+      color: #22c55e;
+      margin-top: 0;
+    }
+    button {
+      background: #22c55e;
+      color: white;
+      border: none;
+      padding: 12px 24px;
+      font-size: 16px;
+      border-radius: 6px;
+      cursor: pointer;
+      margin: 10px 5px;
+      transition: background 0.2s;
+    }
+    button:hover {
+      background: #16a34a;
+    }
+    button.danger {
+      background: #ef4444;
+    }
+    button.danger:hover {
+      background: #dc2626;
+    }
+    .status {
+      margin-top: 20px;
+      padding: 15px;
+      border-radius: 6px;
+      display: none;
+    }
+    .status.success {
+      background: #d1fae5;
+      color: #065f46;
+      border: 1px solid #6ee7b7;
+    }
+    .status.error {
+      background: #fee2e2;
+      color: #991b1b;
+      border: 1px solid #fca5a5;
+    }
+    .info {
+      background: #eff6ff;
+      padding: 15px;
+      border-radius: 6px;
+      margin: 20px 0;
+      border-left: 4px solid #3b82f6;
+    }
+    code {
+      background: #f3f4f6;
+      padding: 2px 6px;
+      border-radius: 3px;
+      font-family: 'Courier New', monospace;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>🧹 Clear LocalStorage</h1>
+    <p>This will clear all saved data for the Meal Plan Assistant app, including:</p>
+    <ul>
+      <li>Family member profiles</li>
+      <li>Meal plans</li>
+      <li>Grocery lists</li>
+      <li>Favorites</li>
+      <li>Settings</li>
+      <li>Chat history</li>
+    </ul>
+    
+    <div class="info">
+      <strong>⚠️ Warning:</strong> This action cannot be undone. You'll need to set up your profiles again after clearing.
+    </div>
+
+    <div>
+      <button onclick="clearStorage()">Clear LocalStorage</button>
+      <button onclick="checkStorage()" style="background: #3b82f6;">Check Storage</button>
+      <button onclick="goToApp()" style="background: #6366f1;">Go to App</button>
+    </div>
+
+    <div id="status" class="status"></div>
+
+    <div style="margin-top: 30px; padding-top: 20px; border-top: 1px solid #e5e7eb;">
+      <h3>Manual Method (Browser Console)</h3>
+      <p>You can also clear localStorage manually:</p>
+      <ol>
+        <li>Open your browser's Developer Tools (F12 or Right-click → Inspect)</li>
+        <li>Go to the <strong>Console</strong> tab</li>
+        <li>Type: <code>localStorage.clear()</code> and press Enter</li>
+        <li>Type: <code>location.reload()</code> to refresh the page</li>
+      </ol>
+    </div>
+  </div>
+
+  <script>
+    function showStatus(message, type) {
+      const status = document.getElementById('status');
+      status.textContent = message;
+      status.className = 'status ' + type;
+      status.style.display = 'block';
+      setTimeout(() => {
+        status.style.display = 'none';
+      }, 5000);
+    }
+
+    function clearStorage() {
+      if (confirm('Are you sure you want to clear all localStorage data? This cannot be undone.')) {
+        try {
+          localStorage.clear();
+          showStatus('✅ LocalStorage cleared successfully!', 'success');
+          
+          // Optionally redirect to the app
+          setTimeout(() => {
+            if (confirm('Storage cleared! Would you like to go to the app now?')) {
+              window.location.href = 'http://localhost:5173';
+            }
+          }, 1000);
+        } catch (error) {
+          showStatus('❌ Error clearing storage: ' + error.message, 'error');
+        }
+      }
+    }
+
+    function checkStorage() {
+      try {
+        const keys = Object.keys(localStorage);
+        const mealPlanKeys = keys.filter(key => key.includes('meal-plan'));
+        
+        if (mealPlanKeys.length === 0) {
+          showStatus('✅ No Meal Plan Assistant data found in localStorage.', 'success');
+        } else {
+          let message = `Found ${mealPlanKeys.length} item(s) in localStorage:\n\n`;
+          mealPlanKeys.forEach(key => {
+            const size = (localStorage.getItem(key) || '').length;
+            message += `• ${key} (${size} bytes)\n`;
+          });
+          alert(message);
+        }
+      } catch (error) {
+        showStatus('❌ Error checking storage: ' + error.message, 'error');
+      }
+    }
+
+    function goToApp() {
+      window.location.href = 'http://localhost:5173';
+    }
+
+    // Check storage on load
+    window.addEventListener('load', () => {
+      const keys = Object.keys(localStorage);
+      const mealPlanKeys = keys.filter(key => key.includes('meal-plan'));
+      if (mealPlanKeys.length > 0) {
+        showStatus(`Found ${mealPlanKeys.length} item(s) in localStorage. Click "Clear LocalStorage" to remove them.`, 'success');
+      }
+    });
+  </script>
+</body>
+</html>
+
