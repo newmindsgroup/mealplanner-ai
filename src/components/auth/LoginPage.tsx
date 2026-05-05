@@ -85,7 +85,7 @@ export default function LoginPage() {
         setSuccess(true);
         // Wait for animation before navigating
         setTimeout(() => {
-          navigate('/');
+          navigate('/dashboard');
         }, 800);
       } else {
         setError('Invalid email or password. Please try again.');

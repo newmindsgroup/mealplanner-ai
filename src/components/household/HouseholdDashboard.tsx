@@ -38,8 +38,8 @@ export default function HouseholdDashboard() {
           <p className="text-gray-600 dark:text-gray-400 mb-6">
             Create a household to share meal plans and collaborate with your family
           </p>
-          <button onClick={() => setShowCreateModal(true)} className="btn-primary">
-            <UserPlus className="w-5 h-5 mr-2" />
+          <button onClick={() => setShowCreateModal(true)} className="btn-primary btn-lg">
+            <UserPlus className="w-5 h-5" />
             Create Household
           </button>
         </div>
@@ -98,7 +98,7 @@ export default function HouseholdDashboard() {
         </div>
         {canInvite && (
           <button onClick={() => setShowInviteModal(true)} className="btn-primary">
-            <UserPlus className="w-5 h-5 mr-2" />
+            <UserPlus className="w-5 h-5" />
             Invite Member
           </button>
         )}

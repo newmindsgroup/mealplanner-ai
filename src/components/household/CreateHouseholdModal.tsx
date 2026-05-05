@@ -103,7 +103,7 @@ export default function CreateHouseholdModal({ onClose }: CreateHouseholdModalPr
             >
               {isLoading ? (
                 <>
-                  <Loader className="w-5 h-5 animate-spin mr-2" />
+                  <Loader className="w-5 h-5 animate-spin" />
                   Creating...
                 </>
               ) : (

@@ -197,12 +197,12 @@ export default function ProfilePage() {
               >
                 {isLoading ? (
                   <>
-                    <Loader className="w-5 h-5 animate-spin mr-2" />
+                    <Loader className="w-5 h-5 animate-spin" />
                     Saving...
                   </>
                 ) : (
                   <>
-                    <Save className="w-5 h-5 mr-2" />
+                    <Save className="w-5 h-5" />
                     Save Changes
                   </>
                 )}

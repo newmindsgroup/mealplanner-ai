@@ -206,7 +206,7 @@ export default function AccountSettings() {
               >
                 {passwordLoading ? (
                   <>
-                    <Loader className="w-5 h-5 animate-spin mr-2" />
+                    <Loader className="w-5 h-5 animate-spin" />
                     Changing...
                   </>
                 ) : (
@@ -234,7 +234,7 @@ export default function AccountSettings() {
               onClick={() => setShowDeleteConfirm(true)}
               className="btn-secondary text-red-600 hover:text-red-700 dark:text-red-400 dark:hover:text-red-300"
             >
-              <Trash2 className="w-5 h-5 mr-2" />
+              <Trash2 className="w-5 h-5" />
               Delete Account
             </button>
           </div>
@@ -282,7 +282,7 @@ export default function AccountSettings() {
               </button>
               <button
                 onClick={handleDeleteAccount}
-                className="btn-secondary bg-red-600 hover:bg-red-700 text-white"
+                className="btn-danger"
                 disabled={deleteLoading}
               >
                 {deleteLoading ? (
@@ -292,7 +292,7 @@ export default function AccountSettings() {
                   </>
                 ) : (
                   <>
-                    <Trash2 className="w-5 h-5 mr-2" />
+                    <Trash2 className="w-5 h-5" />
                     Yes, Delete My Account
                   </>
                 )}
