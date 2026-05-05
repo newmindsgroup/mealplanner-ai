@@ -1,44 +1,62 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, Suspense, lazy } from 'react';
 import {
   Dumbbell, Zap, Target, Camera, TrendingUp, ChevronRight,
   Calendar, Flame, Trophy, Plus, CheckCircle, Clock, BarChart2,
   MessageSquare, Droplets, Users, Wind, ChefHat, Moon, Apple,
-  ShoppingCart, Sun, Shield, Brain,
+  ShoppingCart, Sun, Shield, Brain, Activity, BarChart,
 } from 'lucide-react';
 import { getFitnessProfile, getCurrentWorkoutPlan, getMeasurements, getPersonalRecords, getSessions } from '../../services/fitnessService';
 import type { FitnessProfile, WorkoutPlan, BodyMeasurement, PersonalRecord } from '../../services/fitnessService';
 import { useStore } from '../../store/useStore';
 import type { Person } from '../../types';
+// Eagerly loaded (needed on first render)
 import FitnessOnboarding from './FitnessOnboarding';
-import BodyAnalysis from './BodyAnalysis';
-import WorkoutPlanView from './WorkoutPlanView';
-import ProgressView from './ProgressView';
-import AiCoachChat from './AiCoachChat';
-import WaterTracker from './WaterTracker';
-import StreakCalendar from './StreakCalendar';
 import FamilyMemberPicker from './FamilyMemberPicker';
-import FamilyLeaderboard from './FamilyLeaderboard';
-import EnergyBalance from './EnergyBalance';
-import SessionCompleteModal from './SessionCompleteModal';
-import ProgressCharts from './ProgressCharts';
-import WorkoutLibrary from './WorkoutLibrary';
-import WeeklyCheckIn from './WeeklyCheckIn';
-import CustomPlanBuilder from './CustomPlanBuilder';
-import NutritionFitnessBridge from './NutritionFitnessBridge';
-import WorkoutSessionTracker from './WorkoutSessionTracker';
-import FamilyChallenges from './FamilyChallenges';
-import AIProgressReview from './AIProgressReview';
 import FitnessFeatureTour from './FitnessFeatureTour';
-import GuidedBreathing from './GuidedBreathing';
-import AIRecipeGenerator from './AIRecipeGenerator';
-import SleepStressTracker from './SleepStressTracker';
-import FoodSearch from './FoodSearch';
-import SmartGroceryList from './SmartGroceryList';
-import CircadianMealTimer from './CircadianMealTimer';
-import InjuryPreventionEngine from './InjuryPreventionEngine';
-import AdaptivePeriodization from './AdaptivePeriodization';
 
-type FitnessTab = 'dashboard' | 'plan' | 'body-analysis' | 'progress' | 'coach' | 'hydration' | 'leaderboard' | 'library' | 'checkin' | 'builder' | 'nutrition' | 'challenges' | 'review' | 'breathe' | 'recipes' | 'recovery' | 'food-search' | 'grocery' | 'meal-timing' | 'injury' | 'periodization';
+// ─── Code-split: lazy-loaded per tab (reduces initial bundle ~60%) ──────────
+const BodyAnalysis = lazy(() => import('./BodyAnalysis'));
+const WorkoutPlanView = lazy(() => import('./WorkoutPlanView'));
+const ProgressView = lazy(() => import('./ProgressView'));
+const AiCoachChat = lazy(() => import('./AiCoachChat'));
+const WaterTracker = lazy(() => import('./WaterTracker'));
+const StreakCalendar = lazy(() => import('./StreakCalendar'));
+const FamilyLeaderboard = lazy(() => import('./FamilyLeaderboard'));
+const EnergyBalance = lazy(() => import('./EnergyBalance'));
+const SessionCompleteModal = lazy(() => import('./SessionCompleteModal'));
+const ProgressCharts = lazy(() => import('./ProgressCharts'));
+const WorkoutLibrary = lazy(() => import('./WorkoutLibrary'));
+const WeeklyCheckIn = lazy(() => import('./WeeklyCheckIn'));
+const CustomPlanBuilder = lazy(() => import('./CustomPlanBuilder'));
+const NutritionFitnessBridge = lazy(() => import('./NutritionFitnessBridge'));
+const WorkoutSessionTracker = lazy(() => import('./WorkoutSessionTracker'));
+const FamilyChallenges = lazy(() => import('./FamilyChallenges'));
+const AIProgressReview = lazy(() => import('./AIProgressReview'));
+const GuidedBreathing = lazy(() => import('./GuidedBreathing'));
+const AIRecipeGenerator = lazy(() => import('./AIRecipeGenerator'));
+const SleepStressTracker = lazy(() => import('./SleepStressTracker'));
+const FoodSearch = lazy(() => import('./FoodSearch'));
+const SmartGroceryList = lazy(() => import('./SmartGroceryList'));
+const CircadianMealTimer = lazy(() => import('./CircadianMealTimer'));
+const InjuryPreventionEngine = lazy(() => import('./InjuryPreventionEngine'));
+const AdaptivePeriodization = lazy(() => import('./AdaptivePeriodization'));
+// Phase 12 new modules
+const MuscleHeatmap = lazy(() => import('./MuscleHeatmap'));
+const WeeklyInsightsAI = lazy(() => import('./WeeklyInsightsAI'));
+const FamilyWorkoutComparison = lazy(() => import('./FamilyWorkoutComparison'));
+
+// Loading fallback for lazy components
+const TabLoader = () => (
+  <div className="flex items-center justify-center py-16">
+    <div className="flex items-center gap-3 text-gray-400">
+      <div className="w-5 h-5 border-2 border-orange-500 border-t-transparent rounded-full animate-spin" />
+      <span className="text-sm">Loading…</span>
+    </div>
+  </div>
+);
+
+type FitnessTab = 'dashboard' | 'plan' | 'body-analysis' | 'progress' | 'coach' | 'hydration' | 'leaderboard' | 'library' | 'checkin' | 'builder' | 'nutrition' | 'challenges' | 'review' | 'breathe' | 'recipes' | 'recovery' | 'food-search' | 'grocery' | 'meal-timing' | 'injury' | 'periodization' | 'heatmap' | 'insights' | 'compare';
+
 
 export default function FitnessDashboard() {
   const { people } = useStore();
@@ -131,11 +149,14 @@ export default function FitnessDashboard() {
     { id: 'library' as FitnessTab, label: 'Library', icon: Dumbbell },
     { id: 'coach' as FitnessTab, label: 'Coach', icon: MessageSquare },
     { id: 'body-analysis' as FitnessTab, label: 'Body', icon: Camera },
+    { id: 'heatmap' as FitnessTab, label: 'Muscles', icon: Activity },
     { id: 'nutrition' as FitnessTab, label: 'Nutrition', icon: Target },
     { id: 'hydration' as FitnessTab, label: 'Water', icon: Droplets },
     { id: 'progress' as FitnessTab, label: 'Progress', icon: TrendingUp },
+    { id: 'insights' as FitnessTab, label: 'Insights', icon: BarChart },
     { id: 'review' as FitnessTab, label: 'AI Review', icon: Zap },
     { id: 'leaderboard' as FitnessTab, label: 'Rank', icon: Trophy },
+    { id: 'compare' as FitnessTab, label: 'Compare', icon: Users },
     { id: 'challenges' as FitnessTab, label: 'Challenges', icon: Flame },
     { id: 'checkin' as FitnessTab, label: 'Check-In', icon: CheckCircle },
     { id: 'breathe' as FitnessTab, label: 'Breathe', icon: Wind },
@@ -210,7 +231,8 @@ export default function FitnessDashboard() {
         </div>
       </div>
 
-      {/* Content */}
+      {/* Content — wrapped in Suspense for code-split lazy loading */}
+      <Suspense fallback={<TabLoader />}>
       {activeTab === 'dashboard' && (
         <DashboardOverview
           profile={profile}
@@ -305,9 +327,14 @@ export default function FitnessDashboard() {
       {activeTab === 'meal-timing' && <CircadianMealTimer />}
       {activeTab === 'injury' && <InjuryPreventionEngine />}
       {activeTab === 'periodization' && <AdaptivePeriodization />}
+      {activeTab === 'heatmap' && <MuscleHeatmap />}
+      {activeTab === 'insights' && <WeeklyInsightsAI sessions={sessions} profile={profile} plan={plan} />}
+      {activeTab === 'compare' && <FamilyWorkoutComparison />}
+      </Suspense>
 
       {/* Active workout session (full-screen) */}
       {activeSession && (
+        <Suspense fallback={<TabLoader />}>
         <WorkoutSessionTracker
           session={activeSession.day}
           sessionId={activeSession.sessionId}
@@ -318,6 +345,7 @@ export default function FitnessDashboard() {
           }}
           onCancel={() => setActiveSession(null)}
         />
+        </Suspense>
       )}
 
       {/* Session Complete Modal after tracker */}

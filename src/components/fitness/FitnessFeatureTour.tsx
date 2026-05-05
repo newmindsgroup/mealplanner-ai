@@ -1,12 +1,12 @@
 /**
- * FitnessFeatureTour — One-time guided highlight tour for new fitness users.
- * 5 steps highlighting key tabs. Dismissed to localStorage.
- * Phase 9 polish feature.
+ * FitnessFeatureTour — Guided highlight tour for new fitness users.
+ * Updated Phase 12: covers 8 key features including new AI modules.
+ * Dismissed to localStorage with version key (bumped on new features).
  */
 import React, { useState, useEffect } from 'react';
-import { X, ChevronRight, Dumbbell, Brain, Users, Trophy, PlayCircle, Zap } from 'lucide-react';
+import { X, ChevronRight, Dumbbell, Brain, Users, Trophy, PlayCircle, Zap, Activity, BarChart, ChefHat, Moon } from 'lucide-react';
 
-const TOUR_KEY = 'fitness_tour_v1_seen';
+const TOUR_KEY = 'fitness_tour_v2_seen'; // Bumped to v2 for Phase 12
 
 interface Step {
   emoji: string;
@@ -22,7 +22,7 @@ const STEPS: Step[] = [
   {
     emoji: '👋',
     title: 'Welcome to your Fitness Hub!',
-    body: 'This is your personal AI-powered fitness command center. Let\'s take a quick tour of what\'s available.',
+    body: 'Your personal AI-powered fitness command center with 24 modules. Let\'s take a quick tour of the highlights.',
     cta: 'Show me around',
     tab: '',
     icon: Zap,
@@ -30,35 +30,62 @@ const STEPS: Step[] = [
   },
   {
     emoji: '🏋️',
-    title: 'Build Your Plan',
-    body: 'Go to "Build" to design your own weekly workout schedule — pick exercises, set sets & reps, and save it as your active plan.',
+    title: 'Build & Track Workouts',
+    body: 'Use "Build" to design custom workout plans, then "My Plan" to start live sessions with rest timers, set logging, and XP tracking.',
     cta: 'Got it',
     tab: 'builder',
     icon: Dumbbell,
     color: 'from-orange-500 to-amber-500',
   },
   {
-    emoji: '▶️',
-    title: 'Start Workouts In Real-Time',
-    body: 'In "My Plan", tap the orange Start button on any day card to open the live session tracker — it times your rest, logs your sets, and syncs your XP.',
-    cta: 'Nice!',
-    tab: 'plan',
-    icon: PlayCircle,
-    color: 'from-rose-500 to-pink-500',
-  },
-  {
     emoji: '🤖',
     title: 'Your AI Coach',
-    body: 'The AI Coach tab gives you real-time answers on technique, programming, nutrition, and recovery — trained on your actual profile and goals.',
+    body: 'Ask your AI Coach anything about technique, programming, nutrition, or recovery — it\'s trained on your profile and goals.',
     cta: 'Awesome',
     tab: 'coach',
     icon: Brain,
     color: 'from-violet-500 to-purple-500',
   },
   {
+    emoji: '🎯',
+    title: 'Muscle Heatmap',
+    body: 'See exactly which muscles you\'ve trained this week with our interactive body visualization. Spot imbalances before they become injuries.',
+    cta: 'Cool!',
+    tab: 'heatmap',
+    icon: Activity,
+    color: 'from-rose-500 to-pink-500',
+  },
+  {
+    emoji: '📊',
+    title: 'Weekly AI Insights',
+    body: 'Your AI analyzes every session — training volume, consistency, intensity — and gives you personalized recommendations every week.',
+    cta: 'Smart!',
+    tab: 'insights',
+    icon: BarChart,
+    color: 'from-blue-500 to-cyan-500',
+  },
+  {
+    emoji: '🍽️',
+    title: 'AI Recipes & Nutrition',
+    body: 'Generate personalized recipes based on your goals and blood type. Track macros, search the USDA food database, and time your meals.',
+    cta: 'Nice!',
+    tab: 'recipes',
+    icon: ChefHat,
+    color: 'from-emerald-500 to-teal-500',
+  },
+  {
+    emoji: '😴',
+    title: 'Recovery Intelligence',
+    body: 'Track sleep, stress, and mood to get an AI Readiness Score. Your workouts automatically adapt to how recovered you are.',
+    cta: 'Great',
+    tab: 'recovery',
+    icon: Moon,
+    color: 'from-indigo-500 to-violet-500',
+  },
+  {
     emoji: '🏆',
-    title: 'Family Challenges & Leaderboard',
-    body: 'Create challenges like "1000 reps this week" that the whole family can track. Check the Rank tab to see who\'s top of the leaderboard!',
+    title: 'Family Challenges',
+    body: 'Create challenges, compare stats, and climb the family leaderboard. Everyone gets their own profile with independent tracking!',
     cta: 'Let\'s go!',
     tab: 'challenges',
     icon: Trophy,
@@ -122,7 +149,7 @@ export default function FitnessFeatureTour({ onNavigate }: Props) {
           {/* Step dots */}
           <div className="flex gap-1.5">
             {STEPS.map((_, i) => (
-              <div key={i} className={`h-1.5 rounded-full transition-all duration-300 ${i === step ? 'w-6 bg-orange-500' : 'w-1.5 bg-gray-200 dark:bg-gray-700'}`} />
+              <div key={i} className={`h-1.5 rounded-full transition-all duration-300 ${i === step ? 'w-6 bg-orange-500' : i < step ? 'w-1.5 bg-orange-300' : 'w-1.5 bg-gray-200 dark:bg-gray-700'}`} />
             ))}
           </div>
 
