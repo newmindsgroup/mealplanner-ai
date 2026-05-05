@@ -162,9 +162,9 @@ export default function RegisterPage() {
       
       if (registerSuccess) {
         setSuccess(true);
-        // Wait for animation before navigating
+        // Wait for animation before navigating to dashboard (triggers onboarding for new users)
         setTimeout(() => {
-          navigate('/');
+          navigate('/dashboard');
         }, 1200);
       } else {
         setError('Registration failed. This email may already be in use.');
