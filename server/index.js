@@ -160,6 +160,14 @@ async function startServer() {
       console.log(`   Frontend: ${config.frontendUrl}`);
       console.log('================================');
       console.log('');
+
+      // Start background jobs
+      try {
+        const { startFitnessCleanupJobs } = require('./jobs/fitnessCleanup');
+        startFitnessCleanupJobs();
+      } catch (jobErr) {
+        console.warn('[Jobs] Fitness cleanup jobs failed to start:', jobErr.message);
+      }
     });
   } catch (error) {
     console.error('❌ Failed to start server:', error);

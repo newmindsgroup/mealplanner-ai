@@ -380,4 +380,57 @@ router.get('/progress-analysis', asyncHandler(async (req, res) => {
   res.json({ success: true, data: analysis });
 }));
 
+// ============================================================================
+// WATER / HYDRATION TRACKING
+// ============================================================================
+
+// Ensure water_logs table exists (idempotent)
+const ensureWaterTable = async () => {
+  await execute(`
+    CREATE TABLE IF NOT EXISTS water_logs (
+      id VARCHAR(36) PRIMARY KEY,
+      user_id VARCHAR(36) NOT NULL,
+      amount_ml INT NOT NULL DEFAULT 250,
+      logged_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+      INDEX idx_water_user_date (user_id, logged_at)
+    )
+  `);
+};
+
+// GET /api/fitness/water/today
+router.get('/water/today', asyncHandler(async (req, res) => {
+  await ensureWaterTable();
+  const logs = await query(
+    `SELECT id, amount_ml, logged_at FROM water_logs
+     WHERE user_id = ? AND DATE(logged_at) = CURDATE()
+     ORDER BY logged_at DESC`,
+    [req.userId]
+  );
+  res.json({ success: true, data: logs });
+}));
+
+// POST /api/fitness/water
+router.post('/water', asyncHandler(async (req, res) => {
+  await ensureWaterTable();
+  const { amount_ml } = req.body;
+  if (!amount_ml || amount_ml < 1 || amount_ml > 5000) {
+    return res.status(400).json({ success: false, error: 'amount_ml must be 1–5000' });
+  }
+  const id = uuidv4();
+  await execute(
+    'INSERT INTO water_logs (id, user_id, amount_ml) VALUES (?, ?, ?)',
+    [id, req.userId, amount_ml]
+  );
+  res.json({ success: true, data: { id } });
+}));
+
+// DELETE /api/fitness/water/:id
+router.delete('/water/:id', asyncHandler(async (req, res) => {
+  await execute(
+    'DELETE FROM water_logs WHERE id = ? AND user_id = ?',
+    [req.params.id, req.userId]
+  );
+  res.json({ success: true });
+}));
+
 module.exports = router;

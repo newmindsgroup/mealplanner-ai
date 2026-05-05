@@ -68,7 +68,7 @@ export default function Layout() {
       case 'fitness':
         return <FitnessDashboard />;
       default:
-        return <WeeklyPlanView />;
+        return <WeeklyPlanView onNavigateToFitness={() => setActiveTab('fitness')} />;
     }
   };
 

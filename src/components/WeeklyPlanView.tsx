@@ -8,9 +8,10 @@ import VoiceReaderButton from './VoiceReaderButton';
 import LoadingSpinner from './LoadingSpinner';
 import { WeeklyPlanSkeleton } from './SkeletonLoader';
 import { FoodBenefitIcon } from './food-guide/FoodBenefitBadge';
+import WorkoutDayCard from './fitness/WorkoutDayCard';
 import type { HealthBenefit } from '../types';
 
-export default function WeeklyPlanView() {
+export default function WeeklyPlanView({ onNavigateToFitness }: { onNavigateToFitness?: () => void } = {}) {
   const { currentPlan, setCurrentPlan, people, addPlan, toggleFavorite, favoriteMeals } = useStore();
   const [searchQuery, setSearchQuery] = useState('');
   const [filterCuisine, setFilterCuisine] = useState<string>('');
@@ -390,7 +391,7 @@ export default function WeeklyPlanView() {
                 </div>
               </div>
 
-              {/* Meals Grid - Responsive: 1 col mobile, 2 col tablet, 3 col desktop (max 3 for better card size) */}
+              {/* Meals Grid */}
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 md:gap-4">
                 {meals.map(({ type, meal }) => {
                   const isFav = favoriteMeals.some(f => f.id === meal.id);
@@ -406,6 +407,12 @@ export default function WeeklyPlanView() {
                   );
                 })}
               </div>
+
+              {/* Workout card for this day */}
+              <WorkoutDayCard
+                dayName={format(day, 'EEEE')}
+                onNavigateToFitness={onNavigateToFitness}
+              />
             </div>
           );
         })}
