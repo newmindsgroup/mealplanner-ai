@@ -102,6 +102,10 @@ app.use('/api/chat', require('./routes/chat'));
 // Knowledge base routes
 app.use('/api/knowledge', require('./routes/knowledge'));
 
+// Fitness routes
+app.use('/api/fitness', require('./routes/fitness'));
+
+
 // Data import route
 app.use('/api/import', require('./routes/import'));
 

@@ -213,8 +213,62 @@ Be friendly, helpful, and provide actionable advice.`;
   return chat(messages, {}, userId);
 }
 
+/**
+ * Vision-capable chat — for analyzing images (body photos, food labels, etc.)
+ * Uses Anthropic claude-3-5-sonnet (vision) → falls back to OpenAI gpt-4o
+ */
+async function chatWithVision(messages, options = {}, userId = null) {
+  const keys = await getAIKeys(userId);
+
+  // Anthropic vision
+  if (keys.anthropic) {
+    const Anthropic = require('@anthropic-ai/sdk');
+    const client = new Anthropic({ apiKey: keys.anthropic });
+    const response = await client.messages.create({
+      model: options.model || 'claude-3-5-sonnet-20241022',
+      max_tokens: options.maxTokens || 1024,
+      system: options.system || '',
+      messages: messages,
+    });
+    return response;
+  }
+
+  // OpenAI vision fallback
+  if (keys.openai) {
+    const OpenAI = require('openai');
+    const openai = new OpenAI({ apiKey: keys.openai });
+    // Convert Anthropic image format to OpenAI format
+    const openaiMessages = messages.map(m => ({
+      role: m.role,
+      content: Array.isArray(m.content)
+        ? m.content.map(c => {
+            if (c.type === 'image') {
+              return {
+                type: 'image_url',
+                image_url: { url: `data:${c.source.media_type};base64,${c.source.data}` },
+              };
+            }
+            return c;
+          })
+        : m.content,
+    }));
+    if (options.system) {
+      openaiMessages.unshift({ role: 'system', content: options.system });
+    }
+    const response = await openai.chat.completions.create({
+      model: options.model || 'gpt-4o',
+      messages: openaiMessages,
+      max_tokens: options.maxTokens || 1024,
+    });
+    return response;
+  }
+
+  throw new Error('No AI API keys configured for vision analysis');
+}
+
 module.exports = {
   chat,
+  chatWithVision,
   generateJSON,
   generateMealPlan,
   analyzeFoodLabel,

@@ -527,3 +527,112 @@ CREATE INDEX idx_pantry_user_category ON pantry_items(user_id, category);
 CREATE INDEX idx_lab_member_date ON lab_reports(member_id, test_date DESC);
 CREATE INDEX idx_notifications_user_unread ON notifications(user_id, read_status, created_at DESC);
 
+
+-- ============================================================================
+-- FITNESS MODULE
+-- ============================================================================
+
+-- User fitness profiles
+CREATE TABLE IF NOT EXISTS fitness_profiles (
+    id                   VARCHAR(36) PRIMARY KEY DEFAULT (UUID()),
+    user_id              VARCHAR(36) NOT NULL UNIQUE,
+    height_cm            DECIMAL(5,2) NULL,
+    weight_kg            DECIMAL(5,2) NULL,
+    body_fat_pct         DECIMAL(4,2) NULL,
+    fitness_level        ENUM('beginner','intermediate','advanced') DEFAULT 'beginner',
+    primary_goal         ENUM('weight_loss','muscle_gain','endurance','flexibility','general_health') NULL,
+    secondary_goals      JSON NULL,
+    equipment            JSON NULL,
+    training_styles      JSON NULL,
+    days_per_week        INT DEFAULT 3,
+    session_duration_min INT DEFAULT 45,
+    preferred_time       ENUM('morning','afternoon','evening') DEFAULT 'morning',
+    injuries             JSON NULL,
+    photo_retention      ENUM('30_days','immediate') DEFAULT '30_days',
+    created_at           DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_at           DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
+    INDEX idx_fitness_user (user_id)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- Body photo analyses
+CREATE TABLE IF NOT EXISTS body_analyses (
+    id            VARCHAR(36) PRIMARY KEY DEFAULT (UUID()),
+    user_id       VARCHAR(36) NOT NULL,
+    photo_path    VARCHAR(500) NULL,
+    analyzed_at   DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    delete_at     DATETIME NULL,
+    body_type     ENUM('ectomorph','mesomorph','endomorph') NULL,
+    estimated_bf  DECIMAL(4,2) NULL,
+    muscle_mass   ENUM('low','moderate','high') NULL,
+    ai_notes      TEXT NULL,
+    recommendations JSON NULL,
+    FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
+    INDEX idx_body_user (user_id),
+    INDEX idx_body_delete (delete_at)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- AI-generated workout plans
+CREATE TABLE IF NOT EXISTS workout_plans (
+    id          VARCHAR(36) PRIMARY KEY DEFAULT (UUID()),
+    user_id     VARCHAR(36) NOT NULL,
+    name        VARCHAR(255) NOT NULL,
+    week_start  DATE NOT NULL,
+    goal        VARCHAR(100) NULL,
+    plan_data   JSON NOT NULL,
+    ai_provider VARCHAR(50) NULL,
+    is_active   TINYINT(1) DEFAULT 1,
+    created_at  DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
+    INDEX idx_plan_user_week (user_id, week_start DESC),
+    INDEX idx_plan_active (user_id, is_active)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- Individual workout sessions
+CREATE TABLE IF NOT EXISTS workout_sessions (
+    id             VARCHAR(36) PRIMARY KEY DEFAULT (UUID()),
+    plan_id        VARCHAR(36) NOT NULL,
+    user_id        VARCHAR(36) NOT NULL,
+    scheduled_date DATE NOT NULL,
+    completed_at   DATETIME NULL,
+    duration_min   INT NULL,
+    exercises      JSON NULL,
+    notes          TEXT NULL,
+    mood           ENUM('great','good','ok','tired','skipped') NULL,
+    created_at     DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (plan_id)  REFERENCES workout_plans(id) ON DELETE CASCADE,
+    FOREIGN KEY (user_id)  REFERENCES users(id) ON DELETE CASCADE,
+    INDEX idx_session_user (user_id),
+    INDEX idx_session_date (user_id, scheduled_date DESC)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- Body measurements history
+CREATE TABLE IF NOT EXISTS body_measurements (
+    id           VARCHAR(36) PRIMARY KEY DEFAULT (UUID()),
+    user_id      VARCHAR(36) NOT NULL,
+    measured_at  DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    weight_kg    DECIMAL(5,2) NULL,
+    body_fat_pct DECIMAL(4,2) NULL,
+    chest_cm     DECIMAL(5,2) NULL,
+    waist_cm     DECIMAL(5,2) NULL,
+    hips_cm      DECIMAL(5,2) NULL,
+    bicep_cm     DECIMAL(5,2) NULL,
+    thigh_cm     DECIMAL(5,2) NULL,
+    notes        TEXT NULL,
+    FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
+    INDEX idx_measurements_user (user_id, measured_at DESC)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- Personal records / PRs
+CREATE TABLE IF NOT EXISTS personal_records (
+    id           VARCHAR(36) PRIMARY KEY DEFAULT (UUID()),
+    user_id      VARCHAR(36) NOT NULL,
+    exercise     VARCHAR(255) NOT NULL,
+    record_type  ENUM('max_weight','max_reps','fastest_time','longest_distance') NOT NULL,
+    value        DECIMAL(10,2) NOT NULL,
+    unit         VARCHAR(20) NULL,
+    achieved_at  DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
+    INDEX idx_pr_user (user_id),
+    INDEX idx_pr_exercise (user_id, exercise)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;

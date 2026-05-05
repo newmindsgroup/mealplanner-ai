@@ -15,6 +15,7 @@ import HouseholdDashboard from './household/HouseholdDashboard';
 import ProfilePage from './profile/ProfilePage';
 import MyPantryView from './pantry/MyPantryView';
 import LabsRouter from './labs/LabsRouter';
+import FitnessDashboard from './fitness/FitnessDashboard';
 
 export type TabType =
   | 'profile'
@@ -29,7 +30,8 @@ export type TabType =
   | 'labs'
   | 'settings'
   | 'household'
-  | 'user-profile';
+  | 'user-profile'
+  | 'fitness';
 
 export default function Layout() {
   const [activeTab, setActiveTab] = useState<TabType>('weekly-plan');
@@ -63,6 +65,8 @@ export default function Layout() {
         return <HouseholdDashboard />;
       case 'user-profile':
         return <ProfilePage />;
+      case 'fitness':
+        return <FitnessDashboard />;
       default:
         return <WeeklyPlanView />;
     }

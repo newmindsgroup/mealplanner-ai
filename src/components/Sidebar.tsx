@@ -15,7 +15,8 @@ import {
   UserCircle,
   Apple,
   Package,
-  Activity
+  Activity,
+  Dumbbell
 } from 'lucide-react';
 import type { TabType } from './Layout';
 
@@ -36,6 +37,7 @@ const tabs: { id: TabType; label: string; icon: React.ComponentType<{ className?
   { id: 'grocery-list', label: 'Grocery List', icon: ShoppingCart, description: 'Shopping' },
   { id: 'knowledge-base', label: 'Knowledge Base', icon: BookOpen, description: 'Documents' },
   { id: 'favorites', label: 'Favorites', icon: Heart, description: 'Saved meals' },
+  { id: 'fitness', label: 'Fitness', icon: Dumbbell, description: 'Training & body' },
   { id: 'progress', label: 'Progress', icon: TrendingUp, description: 'Tracking' },
   { id: 'label-analyzer', label: 'Label Analyzer', icon: ScanLine, description: 'Scan labels' },
   { id: 'labs', label: 'Labs Analysis', icon: Activity, description: 'Blood work tracking' },
