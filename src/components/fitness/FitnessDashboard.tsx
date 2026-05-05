@@ -28,6 +28,7 @@ import WorkoutSessionTracker from './WorkoutSessionTracker';
 import FamilyChallenges from './FamilyChallenges';
 import AIProgressReview from './AIProgressReview';
 import SessionCompleteModal from './SessionCompleteModal';
+import FitnessFeatureTour from './FitnessFeatureTour';
 
 type FitnessTab = 'dashboard' | 'plan' | 'body-analysis' | 'progress' | 'coach' | 'hydration' | 'leaderboard' | 'library' | 'checkin' | 'builder' | 'nutrition' | 'challenges' | 'review';
 
@@ -173,22 +174,24 @@ export default function FitnessDashboard() {
         )}
       </div>
 
-      {/* Sub-nav tabs */}
-      <div className="flex gap-1 bg-gray-100 dark:bg-gray-800 rounded-xl p-1">
-        {navTabs.map(({ id, label, icon: Icon }) => (
-          <button
-            key={id}
-            onClick={() => setActiveTab(id)}
-            className={`flex-1 flex items-center justify-center gap-1.5 py-2 px-3 rounded-lg text-xs font-semibold transition-all ${
-              activeTab === id
-                ? 'bg-white dark:bg-gray-700 text-orange-600 shadow-sm'
-                : 'text-gray-500 hover:text-gray-700 dark:hover:text-gray-300'
-            }`}
-          >
-            <Icon className="w-3.5 h-3.5" />
-            <span className="hidden sm:inline">{label}</span>
-          </button>
-        ))}
+      {/* Sub-nav tabs — horizontal scroll on mobile */}
+      <div className="-mx-1">
+        <div className="flex gap-1 overflow-x-auto pb-1 px-1 scrollbar-hide snap-x">
+          {navTabs.map(({ id, label, icon: Icon }) => (
+            <button
+              key={id}
+              onClick={() => setActiveTab(id)}
+              className={`flex-shrink-0 snap-start flex flex-col items-center gap-0.5 py-2 px-3 rounded-xl text-xs font-bold transition-all min-w-[56px] ${
+                activeTab === id
+                  ? 'bg-orange-500 text-white shadow-md shadow-orange-200/50 dark:shadow-orange-900/30'
+                  : 'bg-gray-100 dark:bg-gray-800 text-gray-500 hover:bg-gray-200 dark:hover:bg-gray-700'
+              }`}
+            >
+              <Icon className="w-4 h-4" />
+              <span className="text-[10px] leading-none">{label}</span>
+            </button>
+          ))}
+        </div>
       </div>
 
       {/* Content */}
@@ -210,7 +213,12 @@ export default function FitnessDashboard() {
         />
       )}
       {activeTab === 'plan' && (
-        <WorkoutPlanView plan={plan} onPlanGenerated={(p) => setPlan(p)} profile={profile} />
+        <WorkoutPlanView
+          plan={plan}
+          profile={profile}
+          onPlanGenerated={(p) => setPlan(p)}
+          onStartWorkout={(day) => setActiveSession({ day })}
+        />
       )}
       {activeTab === 'coach' && <AiCoachChat />}
       {activeTab === 'body-analysis' && (
@@ -290,6 +298,9 @@ export default function FitnessDashboard() {
           onDismiss={() => { setCompletedSessionData(null); loadData(); }}
         />
       )}
+
+      {/* First-time feature tour */}
+      <FitnessFeatureTour onNavigate={(tab) => setActiveTab(tab as any)} />
 
       {showOnboarding && profile && (
         <div className="fixed inset-0 bg-black/60 z-50 flex items-center justify-center p-4">

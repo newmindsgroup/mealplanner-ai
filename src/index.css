@@ -451,3 +451,21 @@
   animation: scaleIn 0.3s ease-out;
 }
 
+
+/* ── Mobile nav scrollbar hide ─────────────────────────────────────── */
+.scrollbar-hide {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+.scrollbar-hide::-webkit-scrollbar {
+  display: none;
+}
+
+/* ── Animate-in (tour modal slide-up) ──────────────────────────────── */
+@keyframes slideInFromBottom {
+  from { opacity: 0; transform: translateY(16px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+.animate-in.slide-in-from-bottom-4 {
+  animation: slideInFromBottom 0.3s ease-out forwards;
+}
