@@ -114,6 +114,9 @@ app.use('/api/fitness/leaderboard', require('./routes/fitnessLeaderboard'));
 // Fitness Weekly Check-In
 app.use('/api/fitness/weekly-checkin', require('./routes/fitnessCheckIn'));
 
+// Fitness Custom Plan Builder
+app.use('/api/fitness/custom-plan', require('./routes/fitnessCustomPlan'));
+
 
 // Data import route
 app.use('/api/import', require('./routes/import'));

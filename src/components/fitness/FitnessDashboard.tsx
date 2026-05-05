@@ -22,8 +22,10 @@ import SessionCompleteModal from './SessionCompleteModal';
 import ProgressCharts from './ProgressCharts';
 import WorkoutLibrary from './WorkoutLibrary';
 import WeeklyCheckIn from './WeeklyCheckIn';
+import CustomPlanBuilder from './CustomPlanBuilder';
+import NutritionFitnessBridge from './NutritionFitnessBridge';
 
-type FitnessTab = 'dashboard' | 'plan' | 'body-analysis' | 'progress' | 'coach' | 'hydration' | 'leaderboard' | 'library' | 'checkin';
+type FitnessTab = 'dashboard' | 'plan' | 'body-analysis' | 'progress' | 'coach' | 'hydration' | 'leaderboard' | 'library' | 'checkin' | 'builder' | 'nutrition';
 
 export default function FitnessDashboard() {
   const { people } = useStore();
@@ -108,11 +110,13 @@ export default function FitnessDashboard() {
   };
 
   const navTabs = [
-    { id: 'dashboard' as FitnessTab, label: 'Dashboard', icon: BarChart2 },
+    { id: 'dashboard' as FitnessTab, label: 'Home', icon: BarChart2 },
     { id: 'plan' as FitnessTab, label: 'My Plan', icon: Calendar },
+    { id: 'builder' as FitnessTab, label: 'Build', icon: Plus },
     { id: 'library' as FitnessTab, label: 'Library', icon: Dumbbell },
-    { id: 'coach' as FitnessTab, label: 'AI Coach', icon: MessageSquare },
+    { id: 'coach' as FitnessTab, label: 'Coach', icon: MessageSquare },
     { id: 'body-analysis' as FitnessTab, label: 'Body', icon: Camera },
+    { id: 'nutrition' as FitnessTab, label: 'Nutrition', icon: Target },
     { id: 'hydration' as FitnessTab, label: 'Water', icon: Droplets },
     { id: 'progress' as FitnessTab, label: 'Progress', icon: TrendingUp },
     { id: 'leaderboard' as FitnessTab, label: 'Rank', icon: Trophy },
@@ -231,6 +235,20 @@ export default function FitnessDashboard() {
           personName={selectedPerson?.name}
           inline
           onComplete={() => loadData()}
+        />
+      )}
+      {activeTab === 'builder' && (
+        <CustomPlanBuilder
+          personId={personId}
+          personName={selectedPerson?.name}
+          onPlanSaved={(p) => { setPlan(p?.plan_data ?? p); setActiveTab('plan'); }}
+        />
+      )}
+      {activeTab === 'nutrition' && (
+        <NutritionFitnessBridge
+          profile={profile}
+          todayIsWorkoutDay={!!todayWorkout && todayWorkout.type !== 'Rest'}
+          personName={selectedPerson?.name}
         />
       )}
 

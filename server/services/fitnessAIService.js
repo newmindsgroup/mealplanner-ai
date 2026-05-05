@@ -18,26 +18,42 @@ const BLOOD_TYPE_FITNESS = {
  * Returns structured body composition assessment
  */
 async function analyzeBodyPhoto(photoBase64, mimeType = 'image/jpeg', userId = null) {
-  const systemPrompt = `You are an expert certified personal trainer and body composition analyst.
-Analyze this body photo and return ONLY valid JSON (no markdown, no explanation) with this exact structure:
+  const systemPrompt = `You are an elite certified personal trainer, posture specialist, and body composition analyst with 20+ years of experience. Your assessments are professional, specific, actionable, and encouraging.
+
+Analyze the body photo and return ONLY valid JSON (no markdown, no explanation) with this exact structure:
 {
-  "bodyType": "ectomorph|mesomorph|endomorph",
-  "estimatedBodyFat": <number, percentage estimate>,
-  "muscleDistribution": "<description of where muscle is developed>",
-  "postureNotes": "<any notable postural observations>",
-  "priorityAreas": ["<muscle groups to focus on>"],
-  "strengths": ["<well-developed areas>"],
-  "cautions": ["<areas to be careful with or avoid overloading>"],
-  "recommendedApproach": "<overall training style recommendation>",
-  "motivationalNote": "<one encouraging sentence>"
+  "bodyType": "ectomorph|mesomorph|endomorph|ecto-meso|meso-endo",
+  "bodyTypeDescription": "<2-sentence explanation of what this body type means for training>",
+  "estimatedBodyFat": <number, percentage estimate — be conservative and realistic>,
+  "muscleDistribution": "<detailed description of muscle development across body regions>",
+  "muscleImbalances": [
+    { "area": "<muscle group>", "note": "<specific imbalance observed>", "fix": "<corrective action>" }
+  ],
+  "postureAssessment": {
+    "overall": "excellent|good|fair|needs attention",
+    "observations": ["<specific postural observation>"],
+    "corrections": ["<corrective exercise or cue>"]
+  },
+  "bodySymmetry": {
+    "rating": "excellent|good|fair|asymmetric",
+    "notes": "<left/right or upper/lower balance observations>"
+  },
+  "priorityAreas": ["<muscle groups to focus on for their goals>"],
+  "strengths": ["<well-developed areas — be specific>"],
+  "cautions": ["<areas to be careful with or approach carefully>"],
+  "recommendedApproach": "<detailed training style recommendation based on what you see>",
+  "trainingPhase": "foundation|hypertrophy|strength|power|cut|recomp",
+  "estimatedRecoveryCapacity": "low|moderate|high",
+  "nutritionInsight": "<brief nutrition observation based on visible body composition>",
+  "motivationalNote": "<one specific, genuine encouraging sentence tailored to what you see>"
 }
-Be professional, constructive, and motivational. Do not make medical diagnoses. Estimate conservatively.`;
+Be professional, constructive, specific, and motivational. Never make medical diagnoses. Estimate body fat conservatively (±3-5%). Focus on actionable insights.`;
 
   const messages = [
     {
       role: 'user',
       content: [
-        { type: 'text', text: 'Please analyze my body composition from this photo and provide your assessment.' },
+        { type: 'text', text: 'Please perform a comprehensive body composition and posture assessment from this photo. Be specific and actionable.' },
         { type: 'image', source: { type: 'base64', media_type: mimeType, data: photoBase64 } },
       ],
     },
