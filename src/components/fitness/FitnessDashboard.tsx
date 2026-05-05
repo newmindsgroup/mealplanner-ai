@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import {
   Dumbbell, Zap, Target, Camera, TrendingUp, ChevronRight,
   Calendar, Flame, Trophy, Plus, CheckCircle, Clock, BarChart2,
+  MessageSquare, Droplets,
 } from 'lucide-react';
 import { getFitnessProfile, getCurrentWorkoutPlan, getMeasurements, getPersonalRecords } from '../../services/fitnessService';
 import type { FitnessProfile, WorkoutPlan, BodyMeasurement, PersonalRecord } from '../../services/fitnessService';
@@ -9,8 +10,12 @@ import FitnessOnboarding from './FitnessOnboarding';
 import BodyAnalysis from './BodyAnalysis';
 import WorkoutPlanView from './WorkoutPlanView';
 import ProgressView from './ProgressView';
+import AiCoachChat from './AiCoachChat';
+import WaterTracker from './WaterTracker';
+import StreakCalendar from './StreakCalendar';
+import { api } from '../../services/apiClient';
 
-type FitnessTab = 'dashboard' | 'plan' | 'body-analysis' | 'progress';
+type FitnessTab = 'dashboard' | 'plan' | 'body-analysis' | 'progress' | 'coach' | 'hydration';
 
 export default function FitnessDashboard() {
   const [activeTab, setActiveTab] = useState<FitnessTab>('dashboard');
@@ -18,6 +23,7 @@ export default function FitnessDashboard() {
   const [plan, setPlan] = useState<WorkoutPlan | null>(null);
   const [measurements, setMeasurements] = useState<BodyMeasurement[]>([]);
   const [records, setRecords] = useState<PersonalRecord[]>([]);
+  const [sessions, setSessions] = useState<{ completed_at: string }[]>([]);
   const [loading, setLoading] = useState(true);
   const [showOnboarding, setShowOnboarding] = useState(false);
 
@@ -28,16 +34,18 @@ export default function FitnessDashboard() {
   const loadData = async () => {
     setLoading(true);
     try {
-      const [profileRes, planRes, measRes, recRes] = await Promise.all([
+      const [profileRes, planRes, measRes, recRes, sessRes] = await Promise.all([
         getFitnessProfile().catch(() => ({ data: null })),
         getCurrentWorkoutPlan().catch(() => ({ data: null })),
         getMeasurements().catch(() => ({ data: [] })),
         getPersonalRecords().catch(() => ({ data: [] })),
+        api.get<{ success: boolean; data: { completed_at: string }[] }>('/fitness/sessions').catch(() => ({ data: [] })),
       ]);
       setProfile(profileRes.data);
       setPlan(planRes.data);
       setMeasurements(measRes.data || []);
       setRecords(recRes.data || []);
+      setSessions((sessRes.data || []).filter((s: any) => s.completed_at));
       if (!profileRes.data) setShowOnboarding(true);
     } finally {
       setLoading(false);
@@ -78,7 +86,9 @@ export default function FitnessDashboard() {
   const navTabs = [
     { id: 'dashboard' as FitnessTab, label: 'Dashboard', icon: BarChart2 },
     { id: 'plan' as FitnessTab, label: 'My Plan', icon: Calendar },
+    { id: 'coach' as FitnessTab, label: 'AI Coach', icon: MessageSquare },
     { id: 'body-analysis' as FitnessTab, label: 'Body Analysis', icon: Camera },
+    { id: 'hydration' as FitnessTab, label: 'Hydration', icon: Droplets },
     { id: 'progress' as FitnessTab, label: 'Progress', icon: TrendingUp },
   ];
 
@@ -129,17 +139,25 @@ export default function FitnessDashboard() {
           measurements={measurements}
           records={records}
           plan={plan}
+          sessions={sessions}
           onSetupProfile={() => setShowOnboarding(true)}
           onGoToPlan={() => setActiveTab('plan')}
           onGoToAnalysis={() => setActiveTab('body-analysis')}
+          onGoToCoach={() => setActiveTab('coach')}
           onPlanGenerated={(p) => setPlan(p)}
         />
       )}
       {activeTab === 'plan' && (
         <WorkoutPlanView plan={plan} onPlanGenerated={(p) => setPlan(p)} profile={profile} />
       )}
+      {activeTab === 'coach' && <AiCoachChat />}
       {activeTab === 'body-analysis' && (
         <BodyAnalysis onAnalysisComplete={() => loadData()} />
+      )}
+      {activeTab === 'hydration' && (
+        <div className="max-w-md mx-auto pt-2">
+          <WaterTracker />
+        </div>
       )}
       {activeTab === 'progress' && (
         <ProgressView measurements={measurements} records={records} onMeasurementAdded={() => loadData()} />
@@ -163,17 +181,19 @@ export default function FitnessDashboard() {
 
 // ── Dashboard Overview ─────────────────────────────────────────────────────────
 function DashboardOverview({
-  profile, todayWorkout, measurements, records, plan,
-  onSetupProfile, onGoToPlan, onGoToAnalysis, onPlanGenerated,
+  profile, todayWorkout, measurements, records, plan, sessions,
+  onSetupProfile, onGoToPlan, onGoToAnalysis, onGoToCoach, onPlanGenerated,
 }: {
   profile: FitnessProfile | null;
   todayWorkout?: import('../../services/fitnessService').WorkoutDay;
   measurements: BodyMeasurement[];
   records: PersonalRecord[];
   plan: WorkoutPlan | null;
+  sessions: { completed_at: string }[];
   onSetupProfile: () => void;
   onGoToPlan: () => void;
   onGoToAnalysis: () => void;
+  onGoToCoach: () => void;
   onPlanGenerated: (p: WorkoutPlan) => void;
 }) {
   const [generating, setGenerating] = useState(false);
@@ -181,6 +201,11 @@ function DashboardOverview({
   const latestWeight = measurements[0]?.weight_kg;
   const prevWeight = measurements[1]?.weight_kg;
   const weightDelta = latestWeight && prevWeight ? (latestWeight - prevWeight).toFixed(1) : null;
+
+  // Streak from completed sessions
+  const { calculateStreak } = require('../../services/fitnessUtils');
+  const completedDates = sessions.map((s: any) => (s.completed_at || '').slice(0, 10)).filter(Boolean);
+  const streak = calculateStreak(completedDates);
 
   const handleGeneratePlan = async () => {
     setGenerating(true);
@@ -202,7 +227,7 @@ function DashboardOverview({
         {[
           {
             icon: Flame, color: 'text-orange-500 bg-orange-50',
-            label: 'Streak', value: '—', sub: 'days',
+            label: 'Streak', value: `${streak}`, sub: 'days',
           },
           {
             icon: Trophy, color: 'text-yellow-500 bg-yellow-50',
@@ -294,10 +319,10 @@ function DashboardOverview({
             action: onGoToAnalysis,
           },
           {
-            icon: Plus, color: 'bg-blue-50 text-blue-600',
-            title: 'Log Measurement',
-            desc: 'Track your weight, body fat, and measurements',
-            action: onGoToPlan,
+            icon: MessageSquare, color: 'bg-orange-50 text-orange-600',
+            title: 'Ask AI Coach',
+            desc: 'Get personalized advice from your AI fitness coach',
+            action: onGoToCoach,
           },
           {
             icon: Trophy, color: 'bg-yellow-50 text-yellow-600',
@@ -312,13 +337,19 @@ function DashboardOverview({
             className="bg-white dark:bg-gray-800 rounded-xl border border-gray-100 dark:border-gray-700 p-4 text-left hover:shadow-md transition-all group"
           >
             <div className={`w-9 h-9 ${color} rounded-lg flex items-center justify-center mb-3`}>
-              <Icon className="w-4.5 h-4.5 w-5 h-5" />
+              <Icon className="w-5 h-5" />
             </div>
             <p className="font-bold text-gray-900 dark:text-white text-sm group-hover:text-orange-600 transition-colors">{title}</p>
             <p className="text-xs text-gray-400 mt-0.5">{desc}</p>
           </button>
         ))}
       </div>
+
+      {/* Streak Calendar */}
+      <StreakCalendar
+        completedSessionDates={completedDates}
+        totalXP={completedDates.length * 50}
+      />
     </div>
   );
 }

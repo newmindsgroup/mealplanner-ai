@@ -151,3 +151,36 @@ export const logPersonalRecord = (data: PersonalRecord) =>
 // ── Progress Analysis ─────────────────────────────────────────────────────────
 export const getProgressAnalysis = () =>
   api.get<{ success: boolean; data: unknown }>('/fitness/progress-analysis');
+
+// ── Water / Hydration ─────────────────────────────────────────────────────────
+export interface WaterLog {
+  id: string;
+  amount_ml: number;
+  logged_at: string;
+}
+
+export const getTodayWaterLogs = () =>
+  api.get<{ success: boolean; data: WaterLog[] }>('/fitness/water/today');
+
+export const logWater = (amount_ml: number) =>
+  api.post<{ success: boolean; data: { id: string } }>('/fitness/water', { amount_ml });
+
+export const deleteWaterLog = (id: string) =>
+  api.delete<{ success: boolean }>(`/fitness/water/${id}`);
+
+// ── AI Coach Chat ─────────────────────────────────────────────────────────────
+export interface CoachMessage {
+  id: string;
+  role: 'user' | 'assistant';
+  content: string;
+  created_at?: string;
+}
+
+export const getCoachHistory = () =>
+  api.get<{ success: boolean; data: CoachMessage[] }>('/fitness-chat/history');
+
+export const sendCoachMessage = (message: string) =>
+  api.post<{ success: boolean; data: { reply: string; messageId: string } }>('/fitness-chat/message', { message });
+
+export const clearCoachHistory = () =>
+  api.delete<{ success: boolean }>('/fitness-chat/history');
