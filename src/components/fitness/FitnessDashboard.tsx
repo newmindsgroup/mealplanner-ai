@@ -19,8 +19,11 @@ import FamilyMemberPicker from './FamilyMemberPicker';
 import FamilyLeaderboard from './FamilyLeaderboard';
 import EnergyBalance from './EnergyBalance';
 import SessionCompleteModal from './SessionCompleteModal';
+import ProgressCharts from './ProgressCharts';
+import WorkoutLibrary from './WorkoutLibrary';
+import WeeklyCheckIn from './WeeklyCheckIn';
 
-type FitnessTab = 'dashboard' | 'plan' | 'body-analysis' | 'progress' | 'coach' | 'hydration' | 'leaderboard';
+type FitnessTab = 'dashboard' | 'plan' | 'body-analysis' | 'progress' | 'coach' | 'hydration' | 'leaderboard' | 'library' | 'checkin';
 
 export default function FitnessDashboard() {
   const { people } = useStore();
@@ -107,11 +110,13 @@ export default function FitnessDashboard() {
   const navTabs = [
     { id: 'dashboard' as FitnessTab, label: 'Dashboard', icon: BarChart2 },
     { id: 'plan' as FitnessTab, label: 'My Plan', icon: Calendar },
+    { id: 'library' as FitnessTab, label: 'Library', icon: Dumbbell },
     { id: 'coach' as FitnessTab, label: 'AI Coach', icon: MessageSquare },
-    { id: 'body-analysis' as FitnessTab, label: 'Body Analysis', icon: Camera },
-    { id: 'hydration' as FitnessTab, label: 'Hydration', icon: Droplets },
+    { id: 'body-analysis' as FitnessTab, label: 'Body', icon: Camera },
+    { id: 'hydration' as FitnessTab, label: 'Water', icon: Droplets },
     { id: 'progress' as FitnessTab, label: 'Progress', icon: TrendingUp },
-    { id: 'leaderboard' as FitnessTab, label: 'Leaderboard', icon: Trophy },
+    { id: 'leaderboard' as FitnessTab, label: 'Rank', icon: Trophy },
+    { id: 'checkin' as FitnessTab, label: 'Check-In', icon: CheckCircle },
   ];
 
   return (
@@ -205,12 +210,28 @@ export default function FitnessDashboard() {
         </div>
       )}
       {activeTab === 'progress' && (
-        <ProgressView measurements={measurements} records={records} onMeasurementAdded={() => loadData()} />
+        <ProgressCharts
+          measurements={measurements}
+          records={records}
+          personId={personId}
+          personName={selectedPerson?.name}
+        />
       )}
       {activeTab === 'leaderboard' && (
         <div className="space-y-4">
           <FamilyLeaderboard />
         </div>
+      )}
+      {activeTab === 'library' && (
+        <WorkoutLibrary />
+      )}
+      {activeTab === 'checkin' && (
+        <WeeklyCheckIn
+          personId={personId}
+          personName={selectedPerson?.name}
+          inline
+          onComplete={() => loadData()}
+        />
       )}
 
       {/* Onboarding overlay */}

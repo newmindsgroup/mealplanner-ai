@@ -111,6 +111,9 @@ app.use('/api/fitness-chat', require('./routes/fitnessChat'));
 // Fitness Family Leaderboard
 app.use('/api/fitness/leaderboard', require('./routes/fitnessLeaderboard'));
 
+// Fitness Weekly Check-In
+app.use('/api/fitness/weekly-checkin', require('./routes/fitnessCheckIn'));
+
 
 // Data import route
 app.use('/api/import', require('./routes/import'));
