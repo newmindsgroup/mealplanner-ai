@@ -35,8 +35,11 @@ export function clearTokens(): void {
 // Check if we're in mock mode (no backend configured)
 export function isMockMode(): boolean {
   const apiUrl = getApiUrl();
-  // Mock mode when no API URL is set or it's just the default '/api' fallback without a real server
-  return !import.meta.env.VITE_API_URL && import.meta.env.DEV;
+  // Mock mode when:
+  // 1. No VITE_API_URL is explicitly set (regardless of dev/prod)
+  // 2. OR the API URL is just the default '/api' fallback (no real server)
+  // This ensures Vercel deployments without a backend use mock mode correctly.
+  return !import.meta.env.VITE_API_URL;
 }
 
 // Core fetch wrapper with auth, error handling, and token refresh

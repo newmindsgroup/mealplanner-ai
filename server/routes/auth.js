@@ -179,6 +179,9 @@ router.post('/login', validate(schemas.login), asyncHandler(async (req, res) => 
   // Update last login
   await query('UPDATE users SET last_login = NOW() WHERE id = ?', [user.id]);
 
+  // Housekeeping: clean up expired refresh tokens for this user
+  await query('DELETE FROM refresh_tokens WHERE user_id = ? AND expires_at < NOW()', [user.id]);
+
   res.json({
     success: true,
     message: 'Login successful',
