@@ -24,8 +24,12 @@ import WorkoutLibrary from './WorkoutLibrary';
 import WeeklyCheckIn from './WeeklyCheckIn';
 import CustomPlanBuilder from './CustomPlanBuilder';
 import NutritionFitnessBridge from './NutritionFitnessBridge';
+import WorkoutSessionTracker from './WorkoutSessionTracker';
+import FamilyChallenges from './FamilyChallenges';
+import AIProgressReview from './AIProgressReview';
+import SessionCompleteModal from './SessionCompleteModal';
 
-type FitnessTab = 'dashboard' | 'plan' | 'body-analysis' | 'progress' | 'coach' | 'hydration' | 'leaderboard' | 'library' | 'checkin' | 'builder' | 'nutrition';
+type FitnessTab = 'dashboard' | 'plan' | 'body-analysis' | 'progress' | 'coach' | 'hydration' | 'leaderboard' | 'library' | 'checkin' | 'builder' | 'nutrition' | 'challenges' | 'review';
 
 export default function FitnessDashboard() {
   const { people } = useStore();
@@ -38,6 +42,8 @@ export default function FitnessDashboard() {
   const [sessions, setSessions] = useState<{ completed_at: string }[]>([]);
   const [loading, setLoading] = useState(true);
   const [showOnboarding, setShowOnboarding] = useState(false);
+  const [activeSession, setActiveSession] = useState<{ day: any; sessionId?: string } | null>(null);
+  const [completedSessionData, setCompletedSessionData] = useState<any>(null);
 
   // Auto-select first person when people load
   useEffect(() => {
@@ -119,7 +125,9 @@ export default function FitnessDashboard() {
     { id: 'nutrition' as FitnessTab, label: 'Nutrition', icon: Target },
     { id: 'hydration' as FitnessTab, label: 'Water', icon: Droplets },
     { id: 'progress' as FitnessTab, label: 'Progress', icon: TrendingUp },
+    { id: 'review' as FitnessTab, label: 'AI Review', icon: Zap },
     { id: 'leaderboard' as FitnessTab, label: 'Rank', icon: Trophy },
+    { id: 'challenges' as FitnessTab, label: 'Challenges', icon: Flame },
     { id: 'checkin' as FitnessTab, label: 'Check-In', icon: CheckCircle },
   ];
 
@@ -251,8 +259,38 @@ export default function FitnessDashboard() {
           personName={selectedPerson?.name}
         />
       )}
+      {activeTab === 'challenges' && (
+        <FamilyChallenges personId={personId} personName={selectedPerson?.name} />
+      )}
+      {activeTab === 'review' && (
+        <AIProgressReview personId={personId} personName={selectedPerson?.name} />
+      )}
 
-      {/* Onboarding overlay */}
+      {/* Active workout session (full-screen) */}
+      {activeSession && (
+        <WorkoutSessionTracker
+          session={activeSession.day}
+          sessionId={activeSession.sessionId}
+          personId={personId}
+          onFinish={(summary) => {
+            setCompletedSessionData(summary);
+            setActiveSession(null);
+          }}
+          onCancel={() => setActiveSession(null)}
+        />
+      )}
+
+      {/* Session Complete Modal after tracker */}
+      {completedSessionData && (
+        <SessionCompleteModal
+          sessionId={completedSessionData.sessionId || 'manual'}
+          sessionName={completedSessionData.name || 'Workout'}
+          estimatedDuration={completedSessionData.duration || 45}
+          onComplete={() => { setCompletedSessionData(null); loadData(); }}
+          onDismiss={() => { setCompletedSessionData(null); loadData(); }}
+        />
+      )}
+
       {showOnboarding && profile && (
         <div className="fixed inset-0 bg-black/60 z-50 flex items-center justify-center p-4">
           <div className="bg-white dark:bg-gray-900 rounded-2xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">

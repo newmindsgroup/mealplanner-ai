@@ -117,6 +117,12 @@ app.use('/api/fitness/weekly-checkin', require('./routes/fitnessCheckIn'));
 // Fitness Custom Plan Builder
 app.use('/api/fitness/custom-plan', require('./routes/fitnessCustomPlan'));
 
+// Family Challenges
+app.use('/api/fitness/challenges', require('./routes/fitnessChallenges'));
+
+// AI Progress Review
+app.use('/api/fitness/progress-review', require('./routes/fitnessProgressReview'));
+
 
 // Data import route
 app.use('/api/import', require('./routes/import'));
