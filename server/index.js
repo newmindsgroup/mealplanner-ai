@@ -123,6 +123,9 @@ app.use('/api/fitness/challenges', require('./routes/fitnessChallenges'));
 // AI Progress Review
 app.use('/api/fitness/progress-review', require('./routes/fitnessProgressReview'));
 
+// AI Recipe Generator
+app.use('/api/fitness/ai-recipe', require('./routes/fitnessRecipe'));
+
 
 // Data import route
 app.use('/api/import', require('./routes/import'));

@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import {
   Dumbbell, Zap, Target, Camera, TrendingUp, ChevronRight,
   Calendar, Flame, Trophy, Plus, CheckCircle, Clock, BarChart2,
-  MessageSquare, Droplets, Users,
+  MessageSquare, Droplets, Users, Wind, ChefHat, Moon, Apple,
 } from 'lucide-react';
 import { getFitnessProfile, getCurrentWorkoutPlan, getMeasurements, getPersonalRecords, getSessions } from '../../services/fitnessService';
 import type { FitnessProfile, WorkoutPlan, BodyMeasurement, PersonalRecord } from '../../services/fitnessService';
@@ -27,10 +27,13 @@ import NutritionFitnessBridge from './NutritionFitnessBridge';
 import WorkoutSessionTracker from './WorkoutSessionTracker';
 import FamilyChallenges from './FamilyChallenges';
 import AIProgressReview from './AIProgressReview';
-import SessionCompleteModal from './SessionCompleteModal';
 import FitnessFeatureTour from './FitnessFeatureTour';
+import GuidedBreathing from './GuidedBreathing';
+import AIRecipeGenerator from './AIRecipeGenerator';
+import SleepStressTracker from './SleepStressTracker';
+import FoodSearch from './FoodSearch';
 
-type FitnessTab = 'dashboard' | 'plan' | 'body-analysis' | 'progress' | 'coach' | 'hydration' | 'leaderboard' | 'library' | 'checkin' | 'builder' | 'nutrition' | 'challenges' | 'review';
+type FitnessTab = 'dashboard' | 'plan' | 'body-analysis' | 'progress' | 'coach' | 'hydration' | 'leaderboard' | 'library' | 'checkin' | 'builder' | 'nutrition' | 'challenges' | 'review' | 'breathe' | 'recipes' | 'recovery' | 'food-search';
 
 export default function FitnessDashboard() {
   const { people } = useStore();
@@ -130,6 +133,10 @@ export default function FitnessDashboard() {
     { id: 'leaderboard' as FitnessTab, label: 'Rank', icon: Trophy },
     { id: 'challenges' as FitnessTab, label: 'Challenges', icon: Flame },
     { id: 'checkin' as FitnessTab, label: 'Check-In', icon: CheckCircle },
+    { id: 'breathe' as FitnessTab, label: 'Breathe', icon: Wind },
+    { id: 'recipes' as FitnessTab, label: 'Recipes', icon: ChefHat },
+    { id: 'recovery' as FitnessTab, label: 'Recovery', icon: Moon },
+    { id: 'food-search' as FitnessTab, label: 'Foods', icon: Apple },
   ];
 
   return (
@@ -273,6 +280,16 @@ export default function FitnessDashboard() {
       {activeTab === 'review' && (
         <AIProgressReview personId={personId} personName={selectedPerson?.name} />
       )}
+      {activeTab === 'breathe' && <GuidedBreathing />}
+      {activeTab === 'recipes' && (
+        <AIRecipeGenerator
+          personName={selectedPerson?.name}
+          bloodType={profile?.blood_type}
+          fitnessGoal={profile?.primary_goal}
+        />
+      )}
+      {activeTab === 'recovery' && <SleepStressTracker personId={personId} />}
+      {activeTab === 'food-search' && <FoodSearch />}
 
       {/* Active workout session (full-screen) */}
       {activeSession && (

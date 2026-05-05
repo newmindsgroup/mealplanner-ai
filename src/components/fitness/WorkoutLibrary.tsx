@@ -1,10 +1,11 @@
 /**
- * WorkoutLibrary — Searchable exercise database. Phase 7.
- * 80+ exercises grouped by muscle, equipment, difficulty.
+ * WorkoutLibrary — Searchable exercise database. Phase 10.
+ * 873 exercises from free-exercise-db (public domain).
  * Users can browse, filter, and "Add to Plan".
  */
 import React, { useState, useMemo } from 'react';
 import { Search, Filter, Dumbbell, Zap, Heart, ChevronDown, Plus, X, Info } from 'lucide-react';
+import { EXERCISE_DATABASE, EXERCISE_COUNT } from '../../data/exerciseDatabase';
 
 interface Exercise {
   id: string;
@@ -14,62 +15,22 @@ interface Exercise {
   difficulty: 'beginner' | 'intermediate' | 'advanced';
   category: string;
   type: 'strength' | 'cardio' | 'flexibility' | 'balance';
+  force?: string;
+  mechanic?: string;
+  instructions?: string[];
   sets?: string;
   reps?: string;
   rest?: string;
   tips: string;
 }
 
-const EXERCISES: Exercise[] = [
-  // Chest
-  { id: 'bp', name: 'Barbell Bench Press', muscles: ['Chest', 'Triceps', 'Shoulders'], equipment: ['Barbell', 'Bench'], difficulty: 'intermediate', category: 'Chest', type: 'strength', sets: '3–5', reps: '4–8', rest: '2–3 min', tips: 'Keep shoulder blades retracted. Drive through the chest, not just arms.' },
-  { id: 'db-press', name: 'Dumbbell Chest Press', muscles: ['Chest', 'Triceps'], equipment: ['Dumbbells', 'Bench'], difficulty: 'beginner', category: 'Chest', type: 'strength', sets: '3', reps: '8–12', rest: '90 sec', tips: 'Control the eccentric. Squeeze at the top.' },
-  { id: 'pushup', name: 'Push-Up', muscles: ['Chest', 'Triceps', 'Core'], equipment: [], difficulty: 'beginner', category: 'Chest', type: 'strength', sets: '3', reps: '10–20', rest: '60 sec', tips: 'Keep a straight line from head to heels. Elbows ~45° from body.' },
-  { id: 'incline-bp', name: 'Incline Bench Press', muscles: ['Upper Chest', 'Shoulders'], equipment: ['Barbell', 'Bench'], difficulty: 'intermediate', category: 'Chest', type: 'strength', sets: '3', reps: '8–10', rest: '2 min', tips: 'Set bench to 30–45°. Targets upper chest.' },
-  { id: 'cable-fly', name: 'Cable Chest Fly', muscles: ['Chest'], equipment: ['Cable machines'], difficulty: 'intermediate', category: 'Chest', type: 'strength', sets: '3', reps: '12–15', rest: '60 sec', tips: 'Maintain slight elbow bend. Focus on stretch at end range.' },
-  // Back
-  { id: 'deadlift', name: 'Deadlift', muscles: ['Back', 'Glutes', 'Hamstrings'], equipment: ['Barbell'], difficulty: 'advanced', category: 'Back', type: 'strength', sets: '3–5', reps: '3–6', rest: '3 min', tips: 'Neutral spine. Drive the floor away. Brace your core throughout.' },
-  { id: 'pullup', name: 'Pull-Up', muscles: ['Lats', 'Biceps', 'Core'], equipment: ['Pull-up bar'], difficulty: 'intermediate', category: 'Back', type: 'strength', sets: '3', reps: '5–12', rest: '2 min', tips: 'Full range of motion. Depress shoulder blades before pulling.' },
-  { id: 'bb-row', name: 'Barbell Row', muscles: ['Back', 'Biceps'], equipment: ['Barbell'], difficulty: 'intermediate', category: 'Back', type: 'strength', sets: '3', reps: '6–10', rest: '2 min', tips: 'Hinge at hips ~45°. Pull to lower chest/navel.' },
-  { id: 'lat-pd', name: 'Lat Pulldown', muscles: ['Lats', 'Biceps'], equipment: ['Cable machines'], difficulty: 'beginner', category: 'Back', type: 'strength', sets: '3', reps: '10–12', rest: '90 sec', tips: 'Lean back slightly. Drive elbows toward hips.' },
-  { id: 'seated-row', name: 'Seated Cable Row', muscles: ['Mid Back', 'Biceps'], equipment: ['Cable machines'], difficulty: 'beginner', category: 'Back', type: 'strength', sets: '3', reps: '10–12', rest: '90 sec', tips: 'Maintain upright posture. Squeeze shoulder blades at end.' },
-  // Shoulders
-  { id: 'ohp', name: 'Overhead Press', muscles: ['Shoulders', 'Triceps', 'Core'], equipment: ['Barbell'], difficulty: 'intermediate', category: 'Shoulders', type: 'strength', sets: '3–5', reps: '5–8', rest: '2 min', tips: 'Brace core, glutes, legs. Press directly overhead — not forward.' },
-  { id: 'db-lateral', name: 'Dumbbell Lateral Raise', muscles: ['Side Delts'], equipment: ['Dumbbells'], difficulty: 'beginner', category: 'Shoulders', type: 'strength', sets: '3', reps: '12–15', rest: '60 sec', tips: 'Lead with the elbows. Stop at shoulder height.' },
-  { id: 'face-pull', name: 'Face Pull', muscles: ['Rear Delts', 'Rotator Cuff'], equipment: ['Cable machines', 'Resistance bands'], difficulty: 'beginner', category: 'Shoulders', type: 'strength', sets: '3', reps: '15–20', rest: '60 sec', tips: 'Pull toward forehead. External rotate at end position.' },
-  // Legs
-  { id: 'squat', name: 'Barbell Back Squat', muscles: ['Quads', 'Glutes', 'Hamstrings'], equipment: ['Barbell'], difficulty: 'advanced', category: 'Legs', type: 'strength', sets: '3–5', reps: '4–8', rest: '3 min', tips: 'Brace core. Knees track over toes. Break parallel when possible.' },
-  { id: 'goblet', name: 'Goblet Squat', muscles: ['Quads', 'Glutes', 'Core'], equipment: ['Kettlebells', 'Dumbbells'], difficulty: 'beginner', category: 'Legs', type: 'strength', sets: '3', reps: '10–15', rest: '90 sec', tips: 'Hold weight at chest. Great mobility-builder. Sit into the squat.' },
-  { id: 'rdl', name: 'Romanian Deadlift', muscles: ['Hamstrings', 'Glutes'], equipment: ['Barbell', 'Dumbbells'], difficulty: 'intermediate', category: 'Legs', type: 'strength', sets: '3', reps: '8–12', rest: '2 min', tips: 'Hinge, don\'t squat. Feel the hamstring stretch. Neutral spine.' },
-  { id: 'leg-press', name: 'Leg Press', muscles: ['Quads', 'Glutes'], equipment: ['Leg press machine'], difficulty: 'beginner', category: 'Legs', type: 'strength', sets: '3', reps: '10–15', rest: '90 sec', tips: 'Don\'t lock knees. Foot position changes muscle emphasis.' },
-  { id: 'lunge', name: 'Walking Lunge', muscles: ['Quads', 'Glutes', 'Hamstrings'], equipment: [], difficulty: 'beginner', category: 'Legs', type: 'strength', sets: '3', reps: '12–16 steps', rest: '90 sec', tips: 'Long step forward. Keep front knee over ankle.' },
-  { id: 'calf-raise', name: 'Standing Calf Raise', muscles: ['Calves'], equipment: [], difficulty: 'beginner', category: 'Legs', type: 'strength', sets: '3–4', reps: '15–25', rest: '60 sec', tips: 'Full range: full stretch at bottom, full contraction at top.' },
-  // Arms
-  { id: 'bb-curl', name: 'Barbell Curl', muscles: ['Biceps'], equipment: ['Barbell'], difficulty: 'beginner', category: 'Arms', type: 'strength', sets: '3', reps: '8–12', rest: '60 sec', tips: 'Elbows stay at sides. Controlled negative.' },
-  { id: 'hammer-curl', name: 'Hammer Curl', muscles: ['Biceps', 'Brachialis'], equipment: ['Dumbbells'], difficulty: 'beginner', category: 'Arms', type: 'strength', sets: '3', reps: '10–12', rest: '60 sec', tips: 'Neutral grip. Hits the brachialis and forearm too.' },
-  { id: 'tri-ext', name: 'Tricep Overhead Extension', muscles: ['Triceps'], equipment: ['Dumbbells', 'Cable machines'], difficulty: 'beginner', category: 'Arms', type: 'strength', sets: '3', reps: '10–15', rest: '60 sec', tips: 'Keep elbows close together overhead.' },
-  { id: 'dips', name: 'Tricep Dips', muscles: ['Triceps', 'Chest', 'Shoulders'], equipment: [], difficulty: 'intermediate', category: 'Arms', type: 'strength', sets: '3', reps: '8–15', rest: '90 sec', tips: 'Lean slightly forward for chest focus. Upright for pure triceps.' },
-  // Core
-  { id: 'plank', name: 'Plank', muscles: ['Core', 'Shoulders'], equipment: [], difficulty: 'beginner', category: 'Core', type: 'strength', sets: '3', reps: '30–60 sec', rest: '60 sec', tips: 'Straight line from head to heels. Don\'t let hips sag.' },
-  { id: 'ab-wheel', name: 'Ab Wheel Rollout', muscles: ['Core'], equipment: [], difficulty: 'advanced', category: 'Core', type: 'strength', sets: '3', reps: '8–12', rest: '90 sec', tips: 'Brace hard. Don\'t let lower back extend.' },
-  { id: 'hanging-knee', name: 'Hanging Leg Raise', muscles: ['Lower Abs', 'Hip Flexors'], equipment: ['Pull-up bar'], difficulty: 'intermediate', category: 'Core', type: 'strength', sets: '3', reps: '10–15', rest: '60 sec', tips: 'Minimize hip flexor involvement by posterior tilting pelvis.' },
-  { id: 'russian-twist', name: 'Russian Twist', muscles: ['Obliques', 'Core'], equipment: [], difficulty: 'beginner', category: 'Core', type: 'strength', sets: '3', reps: '16–24', rest: '60 sec', tips: 'Twist from the torso, not just arms.' },
-  // Cardio
-  { id: 'run', name: 'Running', muscles: ['Full Body'], equipment: [], difficulty: 'beginner', category: 'Cardio', type: 'cardio', tips: 'Land midfoot. Keep cadence ~170+ steps/min.' },
-  { id: 'jump-rope', name: 'Jump Rope', muscles: ['Calves', 'Core', 'Shoulders'], equipment: ['Jump rope'], difficulty: 'beginner', category: 'Cardio', type: 'cardio', sets: '5', reps: '1–3 min', rest: '30 sec', tips: 'Land softly on balls of feet. Keep elbows close.' },
-  { id: 'rowing', name: 'Rowing Machine', muscles: ['Back', 'Legs', 'Core'], equipment: ['Cardio machines'], difficulty: 'beginner', category: 'Cardio', type: 'cardio', tips: 'Drive with legs first, then lean back, then arms. Sequence is key.' },
-  { id: 'burpee', name: 'Burpee', muscles: ['Full Body'], equipment: [], difficulty: 'intermediate', category: 'Cardio', type: 'cardio', sets: '3–5', reps: '10–15', rest: '60 sec', tips: 'Explosive jump at top. Chest touches floor at bottom.' },
-  { id: 'kettlebell-swing', name: 'Kettlebell Swing', muscles: ['Glutes', 'Hamstrings', 'Core'], equipment: ['Kettlebells'], difficulty: 'intermediate', category: 'Cardio', type: 'cardio', sets: '4', reps: '15–20', rest: '60 sec', tips: 'Hip hinge, not a squat. Power from the hips, not arms.' },
-  // Flexibility
-  { id: 'hip-flexor', name: 'Hip Flexor Stretch', muscles: ['Hip Flexors'], equipment: [], difficulty: 'beginner', category: 'Flexibility', type: 'flexibility', sets: '2', reps: '30–60 sec/side', rest: 'None', tips: 'Posterior tilt pelvis to deepen stretch.' },
-  { id: 'pigeon', name: 'Pigeon Pose', muscles: ['Glutes', 'Hips'], equipment: [], difficulty: 'beginner', category: 'Flexibility', type: 'flexibility', sets: '2', reps: '60 sec/side', rest: 'None', tips: 'Keep hips square. Breathe into the stretch.' },
-  { id: 'cat-cow', name: 'Cat-Cow', muscles: ['Spine', 'Core'], equipment: [], difficulty: 'beginner', category: 'Flexibility', type: 'flexibility', sets: '2', reps: '10 breaths', rest: 'None', tips: 'Inhale into cow, exhale into cat. Mobilises the whole spine.' },
-  { id: 'world-greatest', name: 'World\'s Greatest Stretch', muscles: ['Full Body'], equipment: [], difficulty: 'beginner', category: 'Flexibility', type: 'flexibility', sets: '3', reps: '5/side', rest: 'None', tips: 'Perfect warm-up. Hits hips, thoracic, hamstrings in one movement.' },
-];
+// Cast the imported data — it's already in our shape
+const EXERCISES: Exercise[] = EXERCISE_DATABASE as Exercise[];
 
-const CATEGORIES = ['All', ...Array.from(new Set(EXERCISES.map(e => e.category)))];
+const CATEGORIES = ['All', ...Array.from(new Set(EXERCISES.map(e => e.category))).sort()];
 const DIFFICULTIES = ['All', 'beginner', 'intermediate', 'advanced'] as const;
-const EQUIPMENT_FILTER = ['Any', 'Bodyweight only', 'Dumbbells', 'Barbell', 'Kettlebells', 'Resistance bands', 'Cable machines'];
+const EQUIPMENT_FILTER = ['Any', 'Bodyweight only', 'Dumbbells', 'Barbell', 'Kettlebells', 'Resistance bands', 'Cable machines', 'Machine', 'EZ Curl Bar', 'Exercise ball'];
+
 
 const DIFF_COLORS: Record<string, string> = {
   beginner: 'bg-emerald-100 text-emerald-700 dark:bg-emerald-950/30 dark:text-emerald-400',
@@ -146,8 +107,17 @@ function ExerciseCard({ ex, onAdd }: ExerciseCardProps) {
           <ChevronDown className={`w-3 h-3 transition-transform ${expanded ? 'rotate-180' : ''}`} />
         </button>
         {expanded && (
-          <div className="px-4 pb-3 text-xs text-gray-500 dark:text-gray-400 leading-relaxed bg-orange-50/50 dark:bg-orange-950/10">
-            {ex.tips}
+          <div className="px-4 pb-3 text-xs text-gray-500 dark:text-gray-400 leading-relaxed bg-orange-50/50 dark:bg-orange-950/10 space-y-2">
+            {ex.tips && <p>{ex.tips}</p>}
+            {ex.instructions && ex.instructions.length > 0 && (
+              <ol className="space-y-1 list-decimal list-inside">
+                {ex.instructions.map((step, i) => (
+                  <li key={i} className="text-[11px] text-gray-500 dark:text-gray-400">{step}</li>
+                ))}
+              </ol>
+            )}
+            {ex.force && <span className="text-[10px] bg-gray-200 dark:bg-gray-600 px-1.5 py-0.5 rounded mr-1">{ex.force}</span>}
+            {ex.mechanic && <span className="text-[10px] bg-gray-200 dark:bg-gray-600 px-1.5 py-0.5 rounded">{ex.mechanic}</span>}
           </div>
         )}
       </div>
