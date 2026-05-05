@@ -39,9 +39,11 @@ interface Props {
   initialProfile?: FitnessProfile | null;
   onComplete: (profile: FitnessProfile) => void;
   onCancel?: () => void;
+  personId?: string;      // Phase 5: family member scoping
+  personName?: string;    // shown in the header so it's clear whose profile this is
 }
 
-export default function FitnessOnboarding({ initialProfile, onComplete, onCancel }: Props) {
+export default function FitnessOnboarding({ initialProfile, onComplete, onCancel, personId, personName }: Props) {
   const [step, setStep] = useState(0);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -77,7 +79,7 @@ export default function FitnessOnboarding({ initialProfile, onComplete, onCancel
     setSaving(true);
     setError(null);
     try {
-      const res = await saveFitnessProfile(form);
+      const res = await saveFitnessProfile(form, personId);
       if (res.data) onComplete(res.data);
       else setError('Failed to save profile');
     } catch {
@@ -95,7 +97,9 @@ export default function FitnessOnboarding({ initialProfile, onComplete, onCancel
         </div>
         <div>
           <h2 className="text-xl font-bold text-gray-900 dark:text-white">
-            {initialProfile ? 'Edit Fitness Profile' : 'Set Up Your Fitness Profile'}
+            {initialProfile
+              ? `Edit ${personName ? `${personName}'s` : 'Your'} Fitness Profile`
+              : `Set Up ${personName ? `${personName}'s` : 'Your'} Fitness Profile`}
           </h2>
           <p className="text-sm text-gray-500">Step {step + 1} of {totalSteps}</p>
         </div>

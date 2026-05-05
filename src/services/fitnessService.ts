@@ -96,11 +96,16 @@ export interface PersonalRecord {
 }
 
 // ── Profile ──────────────────────────────────────────────────────────────────
-export const getFitnessProfile = () =>
-  api.get<{ success: boolean; data: FitnessProfile | null }>('/fitness/profile');
+export const getFitnessProfile = (personId?: string) =>
+  api.get<{ success: boolean; data: FitnessProfile | null }>(
+    `/fitness/profile${personId ? `?personId=${personId}` : ''}`
+  );
 
-export const saveFitnessProfile = (profile: Partial<FitnessProfile>) =>
-  api.post<{ success: boolean; data: FitnessProfile }>('/fitness/profile', profile);
+export const saveFitnessProfile = (profile: Partial<FitnessProfile>, personId?: string) =>
+  api.post<{ success: boolean; data: FitnessProfile }>('/fitness/profile', {
+    ...profile,
+    person_id: personId || undefined,
+  });
 
 // ── Body Analysis ─────────────────────────────────────────────────────────────
 export const getBodyAnalyses = () =>
@@ -121,15 +126,22 @@ export const deleteBodyAnalysis = (id: string) =>
   api.delete<{ success: boolean }>(`/fitness/body-analysis/${id}`);
 
 // ── Workout Plans ─────────────────────────────────────────────────────────────
-export const getCurrentWorkoutPlan = () =>
-  api.get<{ success: boolean; data: WorkoutPlan | null }>('/fitness/workout-plan');
+export const getCurrentWorkoutPlan = (personId?: string) =>
+  api.get<{ success: boolean; data: WorkoutPlan | null }>(
+    `/fitness/workout-plan${personId ? `?personId=${personId}` : ''}`
+  );
 
-export const generateWorkoutPlan = (weekStart?: string) =>
-  api.post<{ success: boolean; data: WorkoutPlan }>('/fitness/workout-plan', { week_start: weekStart });
+export const generateWorkoutPlan = (weekStart?: string, personId?: string) =>
+  api.post<{ success: boolean; data: WorkoutPlan }>('/fitness/workout-plan', {
+    week_start: weekStart,
+    person_id: personId || undefined,
+  });
 
 // ── Sessions ──────────────────────────────────────────────────────────────────
-export const getSessions = () =>
-  api.get<{ success: boolean; data: unknown[] }>('/fitness/sessions');
+export const getSessions = (personId?: string) =>
+  api.get<{ success: boolean; data: unknown[] }>(
+    `/fitness/sessions${personId ? `?personId=${personId}` : ''}`
+  );
 
 export const completeSession = (sessionId: string, data: { duration_min?: number; exercises?: unknown[]; notes?: string; mood?: string }) =>
   api.post<{ success: boolean; message: string }>(`/fitness/session/${sessionId}/complete`, data);

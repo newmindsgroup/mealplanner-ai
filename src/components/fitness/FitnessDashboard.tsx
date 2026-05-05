@@ -2,10 +2,12 @@ import React, { useState, useEffect } from 'react';
 import {
   Dumbbell, Zap, Target, Camera, TrendingUp, ChevronRight,
   Calendar, Flame, Trophy, Plus, CheckCircle, Clock, BarChart2,
-  MessageSquare, Droplets,
+  MessageSquare, Droplets, Users,
 } from 'lucide-react';
-import { getFitnessProfile, getCurrentWorkoutPlan, getMeasurements, getPersonalRecords } from '../../services/fitnessService';
+import { getFitnessProfile, getCurrentWorkoutPlan, getMeasurements, getPersonalRecords, getSessions } from '../../services/fitnessService';
 import type { FitnessProfile, WorkoutPlan, BodyMeasurement, PersonalRecord } from '../../services/fitnessService';
+import { useStore } from '../../store/useStore';
+import type { Person } from '../../types';
 import FitnessOnboarding from './FitnessOnboarding';
 import BodyAnalysis from './BodyAnalysis';
 import WorkoutPlanView from './WorkoutPlanView';
@@ -13,11 +15,13 @@ import ProgressView from './ProgressView';
 import AiCoachChat from './AiCoachChat';
 import WaterTracker from './WaterTracker';
 import StreakCalendar from './StreakCalendar';
-import { api } from '../../services/apiClient';
+import FamilyMemberPicker from './FamilyMemberPicker';
 
 type FitnessTab = 'dashboard' | 'plan' | 'body-analysis' | 'progress' | 'coach' | 'hydration';
 
 export default function FitnessDashboard() {
+  const { people } = useStore();
+  const [selectedPerson, setSelectedPerson] = useState<Person | null>(null);
   const [activeTab, setActiveTab] = useState<FitnessTab>('dashboard');
   const [profile, setProfile] = useState<FitnessProfile | null>(null);
   const [plan, setPlan] = useState<WorkoutPlan | null>(null);
@@ -27,26 +31,37 @@ export default function FitnessDashboard() {
   const [loading, setLoading] = useState(true);
   const [showOnboarding, setShowOnboarding] = useState(false);
 
+  // Auto-select first person when people load
+  useEffect(() => {
+    if (people.length > 0 && !selectedPerson) {
+      setSelectedPerson(people[0]);
+    }
+  }, [people]);
+
+  // Reload data whenever selected person changes
   useEffect(() => {
     loadData();
-  }, []);
+  }, [selectedPerson?.id]);
+
+  const personId = selectedPerson?.id;
 
   const loadData = async () => {
     setLoading(true);
     try {
       const [profileRes, planRes, measRes, recRes, sessRes] = await Promise.all([
-        getFitnessProfile().catch(() => ({ data: null })),
-        getCurrentWorkoutPlan().catch(() => ({ data: null })),
+        getFitnessProfile(personId).catch(() => ({ data: null })),
+        getCurrentWorkoutPlan(personId).catch(() => ({ data: null })),
         getMeasurements().catch(() => ({ data: [] })),
         getPersonalRecords().catch(() => ({ data: [] })),
-        api.get<{ success: boolean; data: { completed_at: string }[] }>('/fitness/sessions').catch(() => ({ data: [] })),
+        getSessions(personId).catch(() => ({ data: [] })),
       ]);
       setProfile(profileRes.data);
       setPlan(planRes.data);
       setMeasurements(measRes.data || []);
       setRecords(recRes.data || []);
-      setSessions((sessRes.data || []).filter((s: any) => s.completed_at));
+      setSessions(((sessRes.data as any[]) || []).filter((s) => s.completed_at));
       if (!profileRes.data) setShowOnboarding(true);
+      else setShowOnboarding(false);
     } finally {
       setLoading(false);
     }
@@ -74,6 +89,9 @@ export default function FitnessDashboard() {
           setProfile(savedProfile);
           setShowOnboarding(false);
         }}
+        personId={personId}
+        personName={selectedPerson?.name}
+        onCancel={people.length > 0 ? () => setShowOnboarding(false) : undefined}
       />
     );
   }
@@ -94,23 +112,44 @@ export default function FitnessDashboard() {
 
   return (
     <div className="space-y-6">
-      {/* Header */}
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-2xl font-bold text-gray-900 dark:text-white flex items-center gap-2">
-            <Dumbbell className="w-6 h-6 text-orange-500" />
-            Fitness
-          </h1>
-          <p className="text-sm text-gray-500 mt-0.5">
-            {profile?.primary_goal ? goalLabel[profile.primary_goal] : 'AI-powered fitness coaching'}
-          </p>
+      {/* Header card — member switcher + title */}
+      <div className="bg-white dark:bg-gray-800 rounded-2xl border border-gray-100 dark:border-gray-700 p-4 space-y-3">
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-2">
+            <div className="w-9 h-9 bg-gradient-to-br from-orange-500 to-rose-500 rounded-xl flex items-center justify-center">
+              <Dumbbell className="w-5 h-5 text-white" />
+            </div>
+            <div>
+              <h1 className="text-lg font-bold text-gray-900 dark:text-white leading-tight">
+                {selectedPerson ? `${selectedPerson.name.split(' ')[0]}'s Fitness` : 'Fitness'}
+              </h1>
+              <p className="text-xs text-gray-500">
+                {profile?.primary_goal ? goalLabel[profile.primary_goal] : 'Set up a fitness profile to get started'}
+              </p>
+            </div>
+          </div>
+          <div className="flex items-center gap-2">
+            {people.length > 1 && (
+              <FamilyMemberPicker
+                selectedPersonId={selectedPerson?.id || null}
+                onSelect={(p) => { setSelectedPerson(p); setActiveTab('dashboard'); }}
+                compact
+              />
+            )}
+            <button
+              onClick={() => setShowOnboarding(true)}
+              className="text-xs text-gray-400 hover:text-orange-600 flex items-center gap-1 transition-colors ml-1"
+            >
+              {profile ? 'Edit' : 'Setup'} <ChevronRight className="w-3 h-3" />
+            </button>
+          </div>
         </div>
-        <button
-          onClick={() => setShowOnboarding(true)}
-          className="text-xs text-gray-500 hover:text-orange-600 flex items-center gap-1 transition-colors"
-        >
-          Edit Profile <ChevronRight className="w-3 h-3" />
-        </button>
+        {people.length > 1 && (
+          <FamilyMemberPicker
+            selectedPersonId={selectedPerson?.id || null}
+            onSelect={(p) => { setSelectedPerson(p); setActiveTab('dashboard'); }}
+          />
+        )}
       </div>
 
       {/* Sub-nav tabs */}

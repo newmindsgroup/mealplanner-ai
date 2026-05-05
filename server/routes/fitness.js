@@ -42,24 +42,45 @@ const upload = multer({
 
 // GET /api/fitness/profile
 router.get('/profile', asyncHandler(async (req, res) => {
-  const profile = await queryOne(
-    'SELECT * FROM fitness_profiles WHERE user_id = ?',
-    [req.userId]
-  );
+  const personId = req.query.personId || null;
+  const where = personId
+    ? 'WHERE user_id = ? AND person_id = ?'
+    : 'WHERE user_id = ? AND (person_id IS NULL OR person_id = "")';
+  const params = personId ? [req.userId, personId] : [req.userId];
+  const profile = await queryOne(`SELECT * FROM fitness_profiles ${where}`, params);
   res.json({ success: true, data: profile || null });
 }));
 
 // POST /api/fitness/profile
 router.post('/profile', asyncHandler(async (req, res) => {
   const {
+    person_id,
     height_cm, weight_kg, body_fat_pct, fitness_level, primary_goal,
     secondary_goals, equipment, training_styles, days_per_week,
     session_duration_min, preferred_time, injuries, photo_retention,
   } = req.body;
 
+  const personId = person_id || null;
+
+  // Validate person_id belongs to this user if provided
+  if (personId) {
+    const person = await queryOne(
+      'SELECT id FROM people WHERE id = ? AND user_id = ?',
+      [personId, req.userId]
+    ).catch(() => null);
+    if (!person) {
+      return res.status(403).json({ success: false, error: 'Person not found or not in your family' });
+    }
+  }
+
+  const whereClause = personId
+    ? 'user_id = ? AND person_id = ?'
+    : 'user_id = ? AND (person_id IS NULL OR person_id = "")';
+  const whereParams = personId ? [req.userId, personId] : [req.userId];
+
   const existing = await queryOne(
-    'SELECT id FROM fitness_profiles WHERE user_id = ?',
-    [req.userId]
+    `SELECT id FROM fitness_profiles WHERE ${whereClause}`,
+    whereParams
   );
 
   if (existing) {
@@ -68,7 +89,7 @@ router.post('/profile', asyncHandler(async (req, res) => {
         height_cm=?, weight_kg=?, body_fat_pct=?, fitness_level=?, primary_goal=?,
         secondary_goals=?, equipment=?, training_styles=?, days_per_week=?,
         session_duration_min=?, preferred_time=?, injuries=?, photo_retention=?
-       WHERE user_id=?`,
+       WHERE id=?`,
       [
         height_cm || null, weight_kg || null, body_fat_pct || null,
         fitness_level || 'beginner', primary_goal || null,
@@ -76,19 +97,20 @@ router.post('/profile', asyncHandler(async (req, res) => {
         JSON.stringify(training_styles || []), days_per_week || 3,
         session_duration_min || 45, preferred_time || 'morning',
         JSON.stringify(injuries || []), photo_retention || '30_days',
-        req.userId,
+        existing.id,
       ]
     );
   } else {
     const id = uuidv4();
     await execute(
       `INSERT INTO fitness_profiles
-        (id, user_id, height_cm, weight_kg, body_fat_pct, fitness_level, primary_goal,
+        (id, user_id, person_id, height_cm, weight_kg, body_fat_pct, fitness_level, primary_goal,
          secondary_goals, equipment, training_styles, days_per_week, session_duration_min,
          preferred_time, injuries, photo_retention)
-       VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)`,
+       VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)`,
       [
-        id, req.userId, height_cm || null, weight_kg || null, body_fat_pct || null,
+        id, req.userId, personId,
+        height_cm || null, weight_kg || null, body_fat_pct || null,
         fitness_level || 'beginner', primary_goal || null,
         JSON.stringify(secondary_goals || []), JSON.stringify(equipment || []),
         JSON.stringify(training_styles || []), days_per_week || 3,
@@ -98,7 +120,10 @@ router.post('/profile', asyncHandler(async (req, res) => {
     );
   }
 
-  const profile = await queryOne('SELECT * FROM fitness_profiles WHERE user_id = ?', [req.userId]);
+  const profile = await queryOne(
+    `SELECT * FROM fitness_profiles WHERE ${whereClause}`,
+    whereParams
+  );
   res.json({ success: true, data: profile });
 }));
 
@@ -197,9 +222,12 @@ router.delete('/body-analysis/:id', asyncHandler(async (req, res) => {
 
 // GET /api/fitness/workout-plan
 router.get('/workout-plan', asyncHandler(async (req, res) => {
+  const personId = req.query.personId || null;
+  const extra = personId ? ' AND person_id = ?' : ' AND (person_id IS NULL OR person_id = "")';
+  const params = personId ? [req.userId, personId] : [req.userId];
   const plan = await queryOne(
-    'SELECT * FROM workout_plans WHERE user_id = ? AND is_active = 1 ORDER BY week_start DESC LIMIT 1',
-    [req.userId]
+    `SELECT * FROM workout_plans WHERE user_id = ?${extra} AND is_active = 1 ORDER BY week_start DESC LIMIT 1`,
+    params
   );
   if (plan && plan.plan_data) {
     plan.plan_data = typeof plan.plan_data === 'string' ? JSON.parse(plan.plan_data) : plan.plan_data;
@@ -209,22 +237,32 @@ router.get('/workout-plan', asyncHandler(async (req, res) => {
 
 // POST /api/fitness/workout-plan
 router.post('/workout-plan', asyncHandler(async (req, res) => {
-  const profile = await queryOne('SELECT * FROM fitness_profiles WHERE user_id = ?', [req.userId]);
+  const personId = req.body.person_id || null;
+  const whereClause = personId
+    ? 'user_id = ? AND person_id = ?'
+    : 'user_id = ? AND (person_id IS NULL OR person_id = "")';
+  const whereParams = personId ? [req.userId, personId] : [req.userId];
+
+  const profile = await queryOne(
+    `SELECT * FROM fitness_profiles WHERE ${whereClause}`,
+    whereParams
+  );
   if (!profile) {
     return res.status(400).json({ success: false, error: 'Complete your fitness profile first' });
   }
 
-  // Parse JSON fields
   ['secondary_goals', 'equipment', 'training_styles', 'injuries'].forEach(field => {
     if (typeof profile[field] === 'string') {
       try { profile[field] = JSON.parse(profile[field]); } catch { profile[field] = []; }
     }
   });
 
-  // Get latest body analysis
+  // Get latest body analysis for this person
+  const baExtra = personId ? ' AND person_id = ?' : ' AND (person_id IS NULL OR person_id = "")';
+  const baParams = personId ? [req.userId, personId] : [req.userId];
   const bodyAnalysis = await queryOne(
-    'SELECT recommendations FROM body_analyses WHERE user_id = ? ORDER BY analyzed_at DESC LIMIT 1',
-    [req.userId]
+    `SELECT recommendations FROM body_analyses WHERE user_id = ?${baExtra} ORDER BY analyzed_at DESC LIMIT 1`,
+    baParams
   );
   let analysisData = null;
   if (bodyAnalysis?.recommendations) {
@@ -232,30 +270,26 @@ router.post('/workout-plan', asyncHandler(async (req, res) => {
     catch { analysisData = null; }
   }
 
-  // Get user's blood type
-  const userProfile = await queryOne(
-    `SELECT p.blood_type FROM people p
-     JOIN users u ON u.id = ?
-     WHERE p.user_id = ? LIMIT 1`,
-    [req.userId, req.userId]
-  );
-  const bloodType = userProfile?.blood_type || null;
+  // Blood type: from specific person or first family member
+  const personRecord = personId
+    ? await queryOne('SELECT blood_type FROM people WHERE id = ?', [personId]).catch(() => null)
+    : await queryOne('SELECT blood_type FROM people WHERE user_id = ? LIMIT 1', [req.userId]).catch(() => null);
+  const bloodType = personRecord?.blood_type || null;
 
-  // Deactivate old plans for this week
   const weekStart = req.body.week_start || new Date().toISOString().split('T')[0];
+  // Deactivate old plans for this person+week
+  const deactivateExtra = personId ? ' AND person_id = ?' : ' AND (person_id IS NULL OR person_id = "")';
   await execute(
-    'UPDATE workout_plans SET is_active = 0 WHERE user_id = ? AND week_start = ?',
-    [req.userId, weekStart]
+    `UPDATE workout_plans SET is_active = 0 WHERE user_id = ?${deactivateExtra} AND week_start = ?`,
+    personId ? [req.userId, personId, weekStart] : [req.userId, weekStart]
   );
 
-  // Generate AI plan
   const planData = await generateWorkoutPlan(profile, analysisData, bloodType, req.userId);
 
-  // Save plan
   const id = uuidv4();
   await execute(
-    'INSERT INTO workout_plans (id, user_id, name, week_start, goal, plan_data, ai_provider, is_active) VALUES (?,?,?,?,?,?,?,1)',
-    [id, req.userId, planData.planName || 'Weekly Plan', weekStart, profile.primary_goal, JSON.stringify(planData), 'anthropic']
+    'INSERT INTO workout_plans (id, user_id, person_id, name, week_start, goal, plan_data, ai_provider, is_active) VALUES (?,?,?,?,?,?,?,?,1)',
+    [id, req.userId, personId, planData.planName || 'Weekly Plan', weekStart, profile.primary_goal, JSON.stringify(planData), 'anthropic']
   );
 
   res.json({ success: true, data: { id, ...planData } });
@@ -267,9 +301,12 @@ router.post('/workout-plan', asyncHandler(async (req, res) => {
 
 // GET /api/fitness/sessions
 router.get('/sessions', asyncHandler(async (req, res) => {
+  const personId = req.query.personId || null;
+  const extra = personId ? ' AND person_id = ?' : '';
+  const params = personId ? [req.userId, personId] : [req.userId];
   const sessions = await query(
-    'SELECT * FROM workout_sessions WHERE user_id = ? ORDER BY scheduled_date DESC LIMIT 50',
-    [req.userId]
+    `SELECT * FROM workout_sessions WHERE user_id = ?${extra} ORDER BY scheduled_date DESC LIMIT 50`,
+    params
   );
   res.json({ success: true, data: sessions });
 }));

@@ -151,6 +151,14 @@ async function startServer() {
       process.exit(1);
     }
 
+    // Run Phase 5 fitness migrations (add person_id columns) — idempotent
+    try {
+      const { runFitnessMigrations } = require('./database/fitnessMigrations');
+      await runFitnessMigrations();
+    } catch (migErr) {
+      console.warn('[Migrations] Fitness migrations skipped:', migErr.message);
+    }
+
     // Start listening
     const PORT = config.port;
     app.listen(PORT, () => {
