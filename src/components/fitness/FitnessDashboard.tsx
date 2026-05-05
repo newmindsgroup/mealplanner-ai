@@ -3,6 +3,7 @@ import {
   Dumbbell, Zap, Target, Camera, TrendingUp, ChevronRight,
   Calendar, Flame, Trophy, Plus, CheckCircle, Clock, BarChart2,
   MessageSquare, Droplets, Users, Wind, ChefHat, Moon, Apple,
+  ShoppingCart, Sun, Shield, Brain,
 } from 'lucide-react';
 import { getFitnessProfile, getCurrentWorkoutPlan, getMeasurements, getPersonalRecords, getSessions } from '../../services/fitnessService';
 import type { FitnessProfile, WorkoutPlan, BodyMeasurement, PersonalRecord } from '../../services/fitnessService';
@@ -32,8 +33,12 @@ import GuidedBreathing from './GuidedBreathing';
 import AIRecipeGenerator from './AIRecipeGenerator';
 import SleepStressTracker from './SleepStressTracker';
 import FoodSearch from './FoodSearch';
+import SmartGroceryList from './SmartGroceryList';
+import CircadianMealTimer from './CircadianMealTimer';
+import InjuryPreventionEngine from './InjuryPreventionEngine';
+import AdaptivePeriodization from './AdaptivePeriodization';
 
-type FitnessTab = 'dashboard' | 'plan' | 'body-analysis' | 'progress' | 'coach' | 'hydration' | 'leaderboard' | 'library' | 'checkin' | 'builder' | 'nutrition' | 'challenges' | 'review' | 'breathe' | 'recipes' | 'recovery' | 'food-search';
+type FitnessTab = 'dashboard' | 'plan' | 'body-analysis' | 'progress' | 'coach' | 'hydration' | 'leaderboard' | 'library' | 'checkin' | 'builder' | 'nutrition' | 'challenges' | 'review' | 'breathe' | 'recipes' | 'recovery' | 'food-search' | 'grocery' | 'meal-timing' | 'injury' | 'periodization';
 
 export default function FitnessDashboard() {
   const { people } = useStore();
@@ -137,6 +142,10 @@ export default function FitnessDashboard() {
     { id: 'recipes' as FitnessTab, label: 'Recipes', icon: ChefHat },
     { id: 'recovery' as FitnessTab, label: 'Recovery', icon: Moon },
     { id: 'food-search' as FitnessTab, label: 'Foods', icon: Apple },
+    { id: 'grocery' as FitnessTab, label: 'Grocery', icon: ShoppingCart },
+    { id: 'meal-timing' as FitnessTab, label: 'Timing', icon: Sun },
+    { id: 'injury' as FitnessTab, label: 'Prevent', icon: Shield },
+    { id: 'periodization' as FitnessTab, label: 'Cycles', icon: Brain },
   ];
 
   return (
@@ -290,6 +299,12 @@ export default function FitnessDashboard() {
       )}
       {activeTab === 'recovery' && <SleepStressTracker personId={personId} />}
       {activeTab === 'food-search' && <FoodSearch />}
+      {activeTab === 'grocery' && (
+        <SmartGroceryList fitnessGoal={profile?.primary_goal} personName={selectedPerson?.name} />
+      )}
+      {activeTab === 'meal-timing' && <CircadianMealTimer />}
+      {activeTab === 'injury' && <InjuryPreventionEngine />}
+      {activeTab === 'periodization' && <AdaptivePeriodization />}
 
       {/* Active workout session (full-screen) */}
       {activeSession && (
