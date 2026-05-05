@@ -15,7 +15,7 @@ import '../styles/landing.css';
 
 export default function LandingPage() {
   const navigate = useNavigate();
-  const { isAuthenticated } = useAuth();
+  const { isAuthenticated, logout } = useAuth();
 
   // Setup Intersection Observer for fade-in animations
   useEffect(() => {
@@ -69,6 +69,11 @@ export default function LandingPage() {
     navigate('/dashboard');
   };
 
+  const handleLogout = async () => {
+    await logout();
+    navigate('/');
+  };
+
   return (
     <DemoProvider>
       <div className="smooth-scroll bg-white">
@@ -77,6 +82,7 @@ export default function LandingPage() {
           isAuthenticated={isAuthenticated}
           onGetStarted={handleGetStarted}
           onEnterApp={handleEnterApp}
+          onLogout={handleLogout}
         />
 
         {/* Feature Grid */}

@@ -1,13 +1,15 @@
 import React from 'react';
-import { Sparkles, Calendar, Heart, Brain, Users, Zap } from 'lucide-react';
+import { Link } from 'react-router-dom';
+import { Sparkles, Calendar, Heart, Brain, Users, Zap, LogIn, UserPlus, LayoutDashboard, LogOut } from 'lucide-react';
 
 interface HeroSectionProps {
   isAuthenticated: boolean;
   onGetStarted: () => void;
   onEnterApp: () => void;
+  onLogout?: () => void;
 }
 
-export default function HeroSection({ isAuthenticated, onGetStarted, onEnterApp }: HeroSectionProps) {
+export default function HeroSection({ isAuthenticated, onGetStarted, onEnterApp, onLogout }: HeroSectionProps) {
   const features = [
     { icon: Calendar, text: 'AI-Powered Meal Planning', color: 'text-emerald-300' },
     { icon: Heart, text: 'Blood Type Compatible', color: 'text-pink-300' },
@@ -20,6 +22,60 @@ export default function HeroSection({ isAuthenticated, onGetStarted, onEnterApp 
       {/* Animated Blob Shapes */}
       <div className="absolute top-20 left-10 w-72 h-72 blob-shape opacity-20"></div>
       <div className="absolute bottom-20 right-10 w-96 h-96 blob-shape opacity-20" style={{ animationDelay: '4s' }}></div>
+
+      {/* ── Sticky Top Navigation ──────────────────────────────── */}
+      <nav className="absolute top-0 inset-x-0 z-30">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 flex items-center justify-between">
+          {/* Logo / Brand */}
+          <Link to="/" className="flex items-center gap-2 group">
+            <div className="w-9 h-9 bg-gradient-to-br from-emerald-400 to-cyan-500 rounded-xl flex items-center justify-center shadow-lg group-hover:scale-110 transition-transform">
+              <span className="text-white font-bold text-lg">🍽️</span>
+            </div>
+            <span className="text-white font-bold text-lg hidden sm:inline">Meal Plan Assistant</span>
+          </Link>
+
+          {/* Nav Actions */}
+          <div className="flex items-center gap-3">
+            {isAuthenticated ? (
+              <>
+                <button
+                  onClick={onEnterApp}
+                  className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl text-sm font-semibold text-white bg-white/15 hover:bg-white/25 backdrop-blur-sm border border-white/20 transition-all"
+                >
+                  <LayoutDashboard className="w-4 h-4" />
+                  Dashboard
+                </button>
+                {onLogout && (
+                  <button
+                    onClick={onLogout}
+                    className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-medium text-white/70 hover:text-white hover:bg-white/10 transition-all"
+                  >
+                    <LogOut className="w-4 h-4" />
+                    <span className="hidden sm:inline">Logout</span>
+                  </button>
+                )}
+              </>
+            ) : (
+              <>
+                <Link
+                  to="/login"
+                  className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl text-sm font-semibold text-white hover:bg-white/10 transition-all"
+                >
+                  <LogIn className="w-4 h-4" />
+                  Login
+                </Link>
+                <Link
+                  to="/register"
+                  className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl text-sm font-semibold text-white bg-gradient-to-r from-emerald-500 to-cyan-500 hover:from-emerald-600 hover:to-cyan-600 shadow-lg hover:shadow-xl transition-all"
+                >
+                  <UserPlus className="w-4 h-4" />
+                  Sign Up Free
+                </Link>
+              </>
+            )}
+          </div>
+        </div>
+      </nav>
       
       {/* Content */}
       <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-20 text-center">
@@ -86,6 +142,16 @@ export default function HeroSection({ isAuthenticated, onGetStarted, onEnterApp 
             </>
           )}
         </div>
+
+        {/* Login prompt for unauthenticated users */}
+        {!isAuthenticated && (
+          <p className="text-white/60 text-sm mb-16 fade-in-up delay-300">
+            Already have an account?{' '}
+            <Link to="/login" className="text-white font-semibold underline underline-offset-4 decoration-emerald-400 hover:text-emerald-300 transition-colors">
+              Sign in here
+            </Link>
+          </p>
+        )}
 
         {/* Floating Demo Cards */}
         <div className="relative max-w-5xl mx-auto fade-in-up delay-400">
