@@ -10,6 +10,7 @@ dist-ssr/
 .env
 .env.local
 .env.*.local
+CREDENTIALS.md
 
 # API Configuration (contains sensitive keys)
 public/config.js

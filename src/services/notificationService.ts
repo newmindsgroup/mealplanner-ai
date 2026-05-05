@@ -18,7 +18,7 @@ export class NotificationService {
   private preferences: NotificationPreferences;
   private emailService: ReturnType<typeof createEmailService>;
 
-  constructor(preferences: NotificationPreferences, smtp Settings: any) {
+  constructor(preferences: NotificationPreferences, smtpSettings: any) {
     this.preferences = preferences;
     this.emailService = createEmailService(smtpSettings);
   }

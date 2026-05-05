@@ -1,4 +1,4 @@
-// Profile Service
+// Profile Service — uses shared API client
 import type {
   UserProfile,
   UpdateProfileData,
@@ -6,107 +6,24 @@ import type {
 } from '../types/profile';
 import type { User } from '../types/auth';
 import type { ApiResponse } from '../types/api';
-import { ApiErrorClass } from '../types/api';
-import { authService } from './authService';
-
-// Base API URL
-const getApiUrl = (): string => {
-  if (typeof window !== 'undefined' && (window as any).APP_CONFIG?.apiUrl) {
-    return (window as any).APP_CONFIG.apiUrl;
-  }
-  return import.meta.env.VITE_API_URL || 'http://localhost:3001/api';
-};
+import { api, apiUpload } from './apiClient';
 
 class ProfileService {
-  private apiUrl: string;
-
-  constructor() {
-    this.apiUrl = getApiUrl();
-  }
-
-  // Helper method to make API calls
-  private async fetchApi<T>(
-    endpoint: string,
-    options: RequestInit = {}
-  ): Promise<ApiResponse<T>> {
-    const url = `${this.apiUrl}${endpoint}`;
-    const token = authService.getToken();
-
-    const headers: HeadersInit = {
-      'Content-Type': 'application/json',
-      ...options.headers,
-    };
-
-    if (token) {
-      headers['Authorization'] = `Bearer ${token}`;
-    }
-
-    try {
-      const response = await fetch(url, {
-        ...options,
-        headers,
-      });
-
-      const data = await response.json();
-
-      if (!response.ok) {
-        throw new ApiErrorClass(
-          data.message || 'An error occurred',
-          response.status,
-          data.errors
-        );
-      }
-
-      return data;
-    } catch (error) {
-      if (error instanceof ApiErrorClass) {
-        throw error;
-      }
-      throw new ApiErrorClass(
-        error instanceof Error ? error.message : 'Network error',
-        0
-      );
-    }
-  }
-
   // Get user profile
   async getProfile(): Promise<ApiResponse<UserProfile>> {
     try {
-      const response = await this.fetchApi<UserProfile>('/users/me/profile');
-      return response;
-    } catch (error) {
-      if (error instanceof ApiErrorClass) {
-        return {
-          success: false,
-          error: error.message,
-        };
-      }
-      return {
-        success: false,
-        error: 'An unexpected error occurred',
-      };
+      return await api.get<UserProfile>('/users/me');
+    } catch (error: any) {
+      return { success: false, error: error.message || 'Failed to load profile' };
     }
   }
 
   // Update profile
   async updateProfile(data: UpdateProfileData): Promise<ApiResponse<UserProfile>> {
     try {
-      const response = await this.fetchApi<UserProfile>('/users/me/profile', {
-        method: 'PUT',
-        body: JSON.stringify(data),
-      });
-      return response;
-    } catch (error) {
-      if (error instanceof ApiErrorClass) {
-        return {
-          success: false,
-          error: error.message,
-        };
-      }
-      return {
-        success: false,
-        error: 'An unexpected error occurred',
-      };
+      return await api.patch<UserProfile>('/users/me', data);
+    } catch (error: any) {
+      return { success: false, error: error.message || 'Failed to update profile' };
     }
   }
 
@@ -115,110 +32,84 @@ class ProfileService {
     try {
       const formData = new FormData();
       formData.append('avatar', file);
-
-      const token = authService.getToken();
-      const headers: HeadersInit = {};
-      if (token) {
-        headers['Authorization'] = `Bearer ${token}`;
-      }
-
-      const response = await fetch(`${this.apiUrl}/users/me/avatar`, {
-        method: 'POST',
-        headers,
-        body: formData,
-      });
-
-      const data = await response.json();
-
-      if (!response.ok) {
-        throw new ApiErrorClass(
-          data.message || 'Upload failed',
-          response.status
-        );
-      }
-
-      return data;
-    } catch (error) {
-      if (error instanceof ApiErrorClass) {
-        return {
-          success: false,
-          error: error.message,
-        };
-      }
-      return {
-        success: false,
-        error: 'An unexpected error occurred',
-      };
+      return await api.upload<{ avatarUrl: string }>('/users/me/avatar', formData);
+    } catch (error: any) {
+      return { success: false, error: error.message || 'Upload failed' };
     }
   }
 
   // Change password
   async changePassword(data: ChangePasswordData): Promise<ApiResponse> {
     try {
-      const response = await this.fetchApi('/users/me/password', {
-        method: 'PUT',
-        body: JSON.stringify(data),
-      });
-      return response;
-    } catch (error) {
-      if (error instanceof ApiErrorClass) {
-        return {
-          success: false,
-          error: error.message,
-        };
-      }
-      return {
-        success: false,
-        error: 'An unexpected error occurred',
-      };
+      return await api.patch('/users/password', data);
+    } catch (error: any) {
+      return { success: false, error: error.message || 'Failed to change password' };
     }
   }
 
   // Delete account
   async deleteAccount(password: string): Promise<ApiResponse> {
     try {
-      const response = await this.fetchApi('/users/me', {
-        method: 'DELETE',
-        body: JSON.stringify({ password }),
-      });
-      return response;
-    } catch (error) {
-      if (error instanceof ApiErrorClass) {
-        return {
-          success: false,
-          error: error.message,
-        };
-      }
-      return {
-        success: false,
-        error: 'An unexpected error occurred',
-      };
+      return await api.delete('/users/account', { password });
+    } catch (error: any) {
+      return { success: false, error: error.message || 'Failed to delete account' };
     }
   }
 
-  // Update user info
-  async updateUser(data: Partial<User>): Promise<ApiResponse<User>> {
+  // Update user settings
+  async updateSettings(settings: Record<string, any>): Promise<ApiResponse> {
     try {
-      const response = await this.fetchApi<User>('/users/me', {
-        method: 'PUT',
-        body: JSON.stringify(data),
-      });
-      return response;
-    } catch (error) {
-      if (error instanceof ApiErrorClass) {
-        return {
-          success: false,
-          error: error.message,
-        };
-      }
-      return {
-        success: false,
-        error: 'An unexpected error occurred',
-      };
+      return await api.patch('/users/settings', settings);
+    } catch (error: any) {
+      return { success: false, error: error.message || 'Failed to update settings' };
+    }
+  }
+
+  // Update dietary preferences
+  async updatePreferences(preferences: Record<string, any>): Promise<ApiResponse> {
+    try {
+      return await api.patch('/users/preferences', preferences);
+    } catch (error: any) {
+      return { success: false, error: error.message || 'Failed to update preferences' };
+    }
+  }
+
+  // Get progress / gamification data
+  async getProgress(): Promise<ApiResponse> {
+    try {
+      return await api.get('/users/progress');
+    } catch (error: any) {
+      return { success: false, error: error.message || 'Failed to load progress' };
+    }
+  }
+
+  // Add XP
+  async addXP(amount: number, reason?: string): Promise<ApiResponse> {
+    try {
+      return await api.post('/users/progress/xp', { amount, reason });
+    } catch (error: any) {
+      return { success: false, error: error.message || 'Failed to add XP' };
+    }
+  }
+
+  // Store/update API key
+  async storeApiKey(provider: 'openai' | 'anthropic', key: string): Promise<ApiResponse> {
+    try {
+      return await api.post('/users/api-keys', { provider, key });
+    } catch (error: any) {
+      return { success: false, error: error.message || 'Failed to store API key' };
+    }
+  }
+
+  // List configured API key providers
+  async getApiKeyProviders(): Promise<ApiResponse<string[]>> {
+    try {
+      return await api.get<string[]>('/users/api-keys');
+    } catch (error: any) {
+      return { success: false, error: error.message || 'Failed to load API keys' };
     }
   }
 }
 
 // Export singleton instance
 export const profileService = new ProfileService();
-

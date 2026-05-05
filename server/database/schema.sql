@@ -145,7 +145,7 @@ CREATE TABLE IF NOT EXISTS meals (
     id VARCHAR(36) PRIMARY KEY,
     plan_id VARCHAR(36) NOT NULL,
     day VARCHAR(20) NOT NULL,
-    meal_type ENUM('breakfast', 'lunch', dinner', 'snack') NOT NULL,
+    meal_type ENUM('breakfast', 'lunch', 'dinner', 'snack') NOT NULL,
     name VARCHAR(255) NOT NULL,
     recipe JSON NULL,
     ingredients JSON NULL,

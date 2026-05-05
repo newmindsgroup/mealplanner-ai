@@ -38,6 +38,14 @@ export default defineConfig({
       '@': '/src'
     }
   },
+  server: {
+    proxy: {
+      '/api': {
+        target: 'http://localhost:3001',
+        changeOrigin: true,
+      }
+    }
+  },
   optimizeDeps: {
     exclude: ['@zxing/library', '@zxing/browser']
   },
@@ -49,8 +57,11 @@ export default defineConfig({
     rollupOptions: {
       output: {
         manualChunks: {
-          'react-vendor': ['react', 'react-dom'],
+          'react-vendor': ['react', 'react-dom', 'react-router-dom'],
           'ai-vendor': ['tesseract.js'],
+          'chart-vendor': ['recharts'],
+          'food-database': ['./src/data/bloodTypeFoods.ts'],
+          'pdf-vendor': ['jspdf', 'jspdf-autotable', 'html2canvas'],
         }
       }
     }
