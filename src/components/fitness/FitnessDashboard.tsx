@@ -16,8 +16,11 @@ import AiCoachChat from './AiCoachChat';
 import WaterTracker from './WaterTracker';
 import StreakCalendar from './StreakCalendar';
 import FamilyMemberPicker from './FamilyMemberPicker';
+import FamilyLeaderboard from './FamilyLeaderboard';
+import EnergyBalance from './EnergyBalance';
+import SessionCompleteModal from './SessionCompleteModal';
 
-type FitnessTab = 'dashboard' | 'plan' | 'body-analysis' | 'progress' | 'coach' | 'hydration';
+type FitnessTab = 'dashboard' | 'plan' | 'body-analysis' | 'progress' | 'coach' | 'hydration' | 'leaderboard';
 
 export default function FitnessDashboard() {
   const { people } = useStore();
@@ -108,6 +111,7 @@ export default function FitnessDashboard() {
     { id: 'body-analysis' as FitnessTab, label: 'Body Analysis', icon: Camera },
     { id: 'hydration' as FitnessTab, label: 'Hydration', icon: Droplets },
     { id: 'progress' as FitnessTab, label: 'Progress', icon: TrendingUp },
+    { id: 'leaderboard' as FitnessTab, label: 'Leaderboard', icon: Trophy },
   ];
 
   return (
@@ -179,10 +183,12 @@ export default function FitnessDashboard() {
           records={records}
           plan={plan}
           sessions={sessions}
+          personId={personId}
           onSetupProfile={() => setShowOnboarding(true)}
           onGoToPlan={() => setActiveTab('plan')}
           onGoToAnalysis={() => setActiveTab('body-analysis')}
           onGoToCoach={() => setActiveTab('coach')}
+          onGoToLeaderboard={() => setActiveTab('leaderboard')}
           onPlanGenerated={(p) => setPlan(p)}
         />
       )}
@@ -200,6 +206,11 @@ export default function FitnessDashboard() {
       )}
       {activeTab === 'progress' && (
         <ProgressView measurements={measurements} records={records} onMeasurementAdded={() => loadData()} />
+      )}
+      {activeTab === 'leaderboard' && (
+        <div className="space-y-4">
+          <FamilyLeaderboard />
+        </div>
       )}
 
       {/* Onboarding overlay */}
@@ -221,7 +232,8 @@ export default function FitnessDashboard() {
 // ── Dashboard Overview ─────────────────────────────────────────────────────────
 function DashboardOverview({
   profile, todayWorkout, measurements, records, plan, sessions,
-  onSetupProfile, onGoToPlan, onGoToAnalysis, onGoToCoach, onPlanGenerated,
+  personId,
+  onSetupProfile, onGoToPlan, onGoToAnalysis, onGoToCoach, onGoToLeaderboard, onPlanGenerated,
 }: {
   profile: FitnessProfile | null;
   todayWorkout?: import('../../services/fitnessService').WorkoutDay;
@@ -229,10 +241,12 @@ function DashboardOverview({
   records: PersonalRecord[];
   plan: WorkoutPlan | null;
   sessions: { completed_at: string }[];
+  personId?: string;
   onSetupProfile: () => void;
   onGoToPlan: () => void;
   onGoToAnalysis: () => void;
   onGoToCoach: () => void;
+  onGoToLeaderboard: () => void;
   onPlanGenerated: (p: WorkoutPlan) => void;
 }) {
   const [generating, setGenerating] = useState(false);
@@ -365,9 +379,9 @@ function DashboardOverview({
           },
           {
             icon: Trophy, color: 'bg-yellow-50 text-yellow-600',
-            title: 'Log a PR',
-            desc: 'Record a new personal record',
-            action: onGoToPlan,
+            title: 'Leaderboard',
+            desc: 'See how your family ranks in fitness this week',
+            action: onGoToLeaderboard,
           },
         ].map(({ icon: Icon, color, title, desc, action }) => (
           <button
@@ -389,6 +403,9 @@ function DashboardOverview({
         completedSessionDates={completedDates}
         totalXP={completedDates.length * 50}
       />
+
+      {/* Energy Balance */}
+      <EnergyBalance personId={personId} />
     </div>
   );
 }

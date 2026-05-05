@@ -108,6 +108,9 @@ app.use('/api/fitness', require('./routes/fitness'));
 // Fitness AI Coach Chat routes
 app.use('/api/fitness-chat', require('./routes/fitnessChat'));
 
+// Fitness Family Leaderboard
+app.use('/api/fitness/leaderboard', require('./routes/fitnessLeaderboard'));
+
 
 // Data import route
 app.use('/api/import', require('./routes/import'));
