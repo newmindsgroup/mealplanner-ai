@@ -5,6 +5,7 @@
  */
 import React from 'react';
 import { useAuth } from '../contexts/AuthContext';
+import ProactiveInsightCards from './shared/ProactiveInsightCards';
 import { 
   Calendar, Dumbbell, Apple, ScanLine, 
   TrendingUp, ShoppingCart, Sparkles, ArrowRight,
@@ -122,6 +123,12 @@ export default function WelcomeWidget({ onNavigate }: WelcomeWidgetProps) {
           </div>
         ))}
       </div>
+
+      {/* Proactive Health Intelligence Cards */}
+      <ProactiveInsightCards
+        onNavigate={onNavigate}
+        maxCards={4}
+      />
 
       {/* Quick action cards */}
       <div>

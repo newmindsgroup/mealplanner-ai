@@ -11,6 +11,7 @@ import DemoPantry from './landing/DemoPantry';
 import DemoGroceryList from './landing/DemoGroceryList';
 import DemoFoodGuide from './landing/DemoFoodGuide';
 import AIIntelligenceShowcase from './landing/AIIntelligenceShowcase';
+import PricingSection from './landing/PricingSection';
 import BenefitsSection from './landing/BenefitsSection';
 import '../styles/landing.css';
 
@@ -103,6 +104,9 @@ export default function LandingPage() {
         {/* Benefits Section */}
         <BenefitsSection />
 
+        {/* Pricing Section */}
+        <PricingSection />
+
         {/* Footer */}
         <footer className="bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900 text-white py-12 px-4 sm:px-6 lg:px-8">
           <div className="max-w-7xl mx-auto">
@@ -140,7 +144,7 @@ export default function LandingPage() {
                 <h4 className="font-bold mb-4">Product</h4>
                 <ul className="space-y-2">
                   <li><a href="#demo" className="text-gray-400 hover:text-white transition-colors">Features</a></li>
-                  <li><a href="#" className="text-gray-400 hover:text-white transition-colors">Pricing</a></li>
+                  <li><a href="#pricing" className="text-gray-400 hover:text-white transition-colors">Pricing</a></li>
                   <li><a href="#" className="text-gray-400 hover:text-white transition-colors">FAQ</a></li>
                   <li><a href="#" className="text-gray-400 hover:text-white transition-colors">Support</a></li>
                 </ul>
