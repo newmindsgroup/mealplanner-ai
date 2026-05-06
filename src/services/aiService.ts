@@ -47,6 +47,7 @@ class AIService {
   private alternativeProvider: AIProvider | null = null;
   private alternativeApiKey: string | null = null;
   private alternativeBaseURL: string | null = null;
+  private useProxy = false; // True when Vercel /api/ai/chat is available
   private maxRetries = 3;
   private retryDelays = [1000, 2000, 4000]; // Exponential backoff
 
@@ -106,7 +107,13 @@ class AIService {
       this.apiKey = openaiKey;
       this.baseURL = 'https://api.openai.com/v1';
     } else {
-      throw new Error('No API key found. Please configure your API key:\n- Add your own OpenAI API key in Settings\n- For development: Set VITE_OPENAI_API_KEY in .env file\n- For production: Create config.js with your API key (see config.example.js)');
+      // No client-side key — check if server-side proxy exists
+      // (Vercel env vars hold the key; the proxy at /api/ai/chat forwards requests)
+      this.provider = 'openai'; // Default; proxy decides the real provider
+      this.apiKey = ''; // Not needed when using proxy
+      this.baseURL = '';
+      this.useProxy = true;
+      console.log('ℹ️ No client-side API key — will use server-side proxy at /api/ai/chat');
     }
   }
 
@@ -139,10 +146,12 @@ class AIService {
     }
     // 3. Check environment variables (development)
     const env = import.meta.env as any;
-    return !!(
-      env.VITE_OPENAI_API_KEY ||
-      env.VITE_ANTHROPIC_API_KEY
-    );
+    if (env.VITE_OPENAI_API_KEY || env.VITE_ANTHROPIC_API_KEY) {
+      return true;
+    }
+    // 4. Always return true — server-side proxy may be available
+    // The proxy at /api/ai/chat handles keys server-side.
+    return true;
   }
 
   /**
@@ -329,6 +338,11 @@ class AIService {
 
     const performChat = async (): Promise<string> => {
       try {
+        // Priority 1: Server-side proxy (secure — key stays on server)
+        if (this.useProxy) {
+          return await this.chatViaProxy(messages, options);
+        }
+        // Priority 2: Direct API call (development / custom user key)
         if (this.provider === 'anthropic') {
           return await this.chatAnthropic(messages, options);
         } else {
@@ -396,6 +410,52 @@ class AIService {
         false
       );
     }
+  }
+  /**
+   * Chat via Vercel server-side proxy (/api/ai/chat)
+   * API key stays on the server — never exposed to the browser.
+   */
+  private async chatViaProxy(
+    messages: ChatMessage[],
+    options: ChatCompletionOptions = {}
+  ): Promise<string> {
+    const response = await fetch('/api/ai/chat', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        messages,
+        model: options.model,
+        provider: this.provider,
+      }),
+    });
+
+    if (!response.ok) {
+      const errorData = await response.json().catch(() => ({ error: `Proxy error: ${response.statusText}` }));
+      
+      // If proxy returns 503, it means no API key is configured on the server
+      if (response.status === 503) {
+        throw new AIError(
+          AIErrorType.AUTH_ERROR,
+          errorData.error || 'AI service is not configured. Please add an API key in Settings or contact support.',
+          'Proxy: no API key configured',
+          false
+        );
+      }
+
+      throw this.classifyError(response.status, { error: { message: errorData.error } }, this.provider);
+    }
+
+    const data = await response.json();
+    if (data.success && data.data?.content) {
+      return data.data.content;
+    }
+
+    throw new AIError(
+      AIErrorType.UNKNOWN,
+      'Received an empty response from the AI. Please try again.',
+      'Proxy returned success but no content',
+      true
+    );
   }
 
   /**

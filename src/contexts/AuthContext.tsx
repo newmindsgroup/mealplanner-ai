@@ -78,6 +78,47 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     initializeAuth();
   }, []);
 
+  // ─── Auto-refresh session to prevent unexpected expiry ─────────────────────
+  // Silently refreshes the token every 25 minutes when the user is authenticated.
+  useEffect(() => {
+    if (!state.isAuthenticated) return;
+
+    const REFRESH_INTERVAL = 25 * 60 * 1000; // 25 minutes
+    const interval = setInterval(async () => {
+      try {
+        const response = await authService.refreshToken();
+        if (response.success && response.user && response.token) {
+          setState((prev) => ({
+            ...prev,
+            user: response.user!,
+            token: response.token!,
+          }));
+        }
+      } catch {
+        // Silent failure — the 401 interceptor in apiClient will handle expiry
+      }
+    }, REFRESH_INTERVAL);
+
+    return () => clearInterval(interval);
+  }, [state.isAuthenticated]);
+
+  // ─── Listen for forced session expiry (from apiClient 401 handler) ─────────
+  useEffect(() => {
+    const handler = async () => {
+      clearChatHistory();
+      setState({
+        user: null,
+        token: null,
+        isAuthenticated: false,
+        isLoading: false,
+        error: 'Session expired. Please sign in again.',
+      });
+    };
+
+    window.addEventListener('auth:session-expired', handler);
+    return () => window.removeEventListener('auth:session-expired', handler);
+  }, []);
+
   // Login function
   const login = useCallback(async (credentials: LoginCredentials): Promise<boolean> => {
     setState((prev) => ({ ...prev, isLoading: true, error: null }));
