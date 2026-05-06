@@ -2,7 +2,7 @@
  * Vercel Serverless Function — API Health Check
  * 
  * GET /api/health
- * Returns server status, available AI providers, and model registry
+ * Returns server status, available AI providers, and integration capabilities
  */
 
 export const config = {
@@ -24,13 +24,21 @@ export default async function handler(req) {
   if (providers.anthropic) models.push('claude-3.5-sonnet');
   if (providers.openrouter) {
     models.push(
-      'gemma-3-27b',       // Google Gemma 3
-      'llama-4-scout',     // Meta Llama 4
-      'mistral-small',     // Mistral AI
-      'gemini-2.5-flash',  // Google Gemini
-      'deepseek-v3',       // DeepSeek
+      'gemma-3-27b',
+      'llama-4-scout',
+      'mistral-small',
+      'gemini-2.5-flash',
+      'deepseek-v3',
     );
   }
+
+  // Data integrations
+  const integrations = {
+    usda: !!process.env.USDA_API_KEY,
+    openFoodFacts: true, // Always available (no key needed)
+    pubmed: true, // Always available (free, no key required)
+    biomarkerDb: true, // Built-in database
+  };
 
   return new Response(
     JSON.stringify({
@@ -43,6 +51,7 @@ export default async function handler(req) {
         modelCount: models.length,
         models,
       },
+      integrations,
     }),
     {
       status: 200,
