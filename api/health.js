@@ -35,9 +35,16 @@ export default async function handler(req) {
   // Data integrations
   const integrations = {
     usda: !!process.env.USDA_API_KEY,
-    openFoodFacts: true, // Always available (no key needed)
-    pubmed: true, // Always available (free, no key required)
-    biomarkerDb: true, // Built-in database
+    openFoodFacts: true,      // Always available (no key needed)
+    pubmed: true,             // Always available (free)
+    nihDSLD: true,            // NIH Dietary Supplement Label DB (free)
+    openFDA: true,            // FDA CAERS adverse events (free)
+    clinicalTrials: true,     // ClinicalTrials.gov (free, no key)
+    biomarkerDb: true,        // Built-in: 22 biomarkers
+    interactionDb: true,      // Built-in: 30+ supplement-drug interactions
+    recipeDb: true,           // Built-in: meals, juices, smoothies
+    supplementDb: true,       // Built-in: 24 key supplements
+    aiToolCalling: true,      // Real-time data fetching during chat
   };
 
   return new Response(

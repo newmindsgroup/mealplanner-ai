@@ -1,5 +1,7 @@
 import { getAIService, AIError, AIErrorType, type AITaskType } from './aiService';
 import { chatWithKnowledgeBase, getKnowledgeContext } from './knowledgeBaseService';
+import { detectToolNeeds, executeTools } from './aiToolCallService';
+import { getInsightsSummary } from './proactiveInsights';
 import type { Person, WeeklyPlan, KnowledgeBaseFile } from '../types';
 
 const SYSTEM_PROMPT = `You are **Nourish AI**, the intelligent nutrition assistant inside Meal Plan Assistant — a premium, AI-first health platform. You are an expert in personalized nutrition, blood type diets, functional medicine, and fitness nutrition.
@@ -28,7 +30,20 @@ const SYSTEM_PROMPT = `You are **Nourish AI**, the intelligent nutrition assista
 - **Type AB**: Mixed (seafood, tofu, dairy, greens). Avoid: red meat, kidney beans, corn, buckwheat. Combined exercise.
 
 ## Contextual Awareness
-When user context is provided (family members, current meal plan, knowledge base), always personalize your response. Address family members by name when relevant.`;
+When user context is provided (family members, current meal plan, knowledge base), always personalize your response. Address family members by name when relevant.
+
+## Available Data Sources
+You have real-time access to these databases. When real-time data is injected below, USE IT to inform your answer:
+- **USDA FoodData Central** — 800K+ foods with full nutrition data
+- **NIH DSLD** — Dietary supplement label database
+- **PubMed** — 35M+ medical research papers
+- **ClinicalTrials.gov** — Active clinical trials
+- **FDA CAERS** — Supplement adverse event reports
+- **Biomarker Database** — Lab test reference ranges + nutrition links
+- **Interaction Database** — Supplement-drug interactions with CYP450 data
+- **Recipe Database** — Health-focused recipes, juices, and smoothies
+
+When citing data, mention the source. If the data section says a supplement has interactions, ALWAYS warn the user.`;
 
 
 // Helpful offline tips when API is unavailable
@@ -252,9 +267,34 @@ export async function chatWithAssistant(
     }
   }
 
+  // Inject proactive health insights so the AI knows about urgent findings
+  try {
+    const insightsSummary = getInsightsSummary();
+    if (insightsSummary) {
+      contextInfo += insightsSummary;
+    }
+  } catch {
+    // Non-critical — skip if insights fail
+  }
+
+  // ── Real-time Tool Execution ──────────────────────────────────────────────
+  // Detect if the user's question needs real data and fetch it BEFORE the AI responds
+  let toolContext = '';
+  try {
+    const toolIntent = detectToolNeeds(userMessage);
+    if (toolIntent) {
+      const toolResults = await executeTools(toolIntent);
+      if (toolResults.contextBlock) {
+        toolContext = toolResults.contextBlock;
+      }
+    }
+  } catch (err) {
+    console.warn('[Tool Execution] Failed, proceeding without data:', err);
+  }
+
   // Add context to the user message (only for the current turn)
-  const enrichedMessage = contextInfo
-    ? `${userMessage}\n\n---\n[System Context — do not repeat this to the user]${contextInfo}`
+  const enrichedMessage = contextInfo || toolContext
+    ? `${userMessage}\n\n---\n[System Context — do not repeat this to the user]${contextInfo}${toolContext}`
     : userMessage;
 
   // Build full message history with system prompt
@@ -342,13 +382,33 @@ function detectTaskType(message: string): AITaskType {
     return 'grocery';
   }
 
+  // Supplement / herb research → DeepSeek V3 (strong reasoning, cost-effective)
+  if (/\b(supplement|herb|adaptogen|nootropic|mushroom|tincture|extract|dosage|ashwagandha|rhodiola|lion'?s?\s*mane|turmeric|berberine|echinacea|elderberry|reishi|cordyceps|bacopa|holy\s*basil|l[\s-]*theanine)\b/.test(lower)) {
+    return 'supplement_research' as AITaskType;
+  }
+
+  // Blood work / lab interpretation → Claude (nuanced medical analysis)
+  if (/\b(blood\s*(work|test|panel|results?)|lab\s*(results?|report|work)|biomarker|hemoglobin|a1c|cholesterol|ldl|hdl|triglyceride|tsh|ferritin|crp|cmp|cbc|lipid\s*panel)\b/.test(lower)) {
+    return 'blood_work_analysis' as AITaskType;
+  }
+
+  // Interaction safety check → GPT-4o (best at structured safety analysis)
+  if (/\b(interact|safe\s*(to|with)|combin|mix|take\s*(with|together)|medication|drug|medicine|contraindic)\b/.test(lower)) {
+    return 'interaction_check' as AITaskType;
+  }
+
+  // Juice / smoothie / recipe search → Gemma 3 (structured output)
+  if (/\b(juice|juicing|smoothie|shake|blend|recipe for|how to make|health drink)\b/.test(lower)) {
+    return 'recipe' as AITaskType;
+  }
+
   // Quick tips (short questions) → Mistral Small (fastest)
   if (lower.length < 50 && /\b(tip|quick|best|worst|good|bad|should i|can i|is it ok)\b/.test(lower)) {
     return 'quick_tip';
   }
 
   // Nutrition/health Q&A → Gemma 3 (safety-aligned, health-focused)
-  if (/\b(blood type|nutrition|vitamin|mineral|supplement|deficiency|inflammation|gut health|immune|antioxidant|diet|calorie|macro|carb|fat|protein|fiber|omega)\b/.test(lower)) {
+  if (/\b(blood type|nutrition|vitamin|mineral|deficiency|inflammation|gut health|immune|antioxidant|diet|calorie|macro|carb|fat|protein|fiber|omega)\b/.test(lower)) {
     return 'nutrition_qa';
   }
 

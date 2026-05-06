@@ -7,6 +7,7 @@
  */
 import { useStore } from '../store/useStore';
 import { runCrossReferenceAnalysis, type CrossReference } from './crossReferenceEngine';
+import { searchRecipeDatabase } from '../data/recipeDatabase';
 import type { LabReport } from '../types/labs';
 import type { PantryItem } from '../types/pantry';
 import type { Person } from '../types/index';
@@ -98,6 +99,11 @@ export function generateProactiveInsights(): ProactiveInsight[] {
       targetPage: 'weekly-plan',
       createdAt: new Date().toISOString(),
     });
+  }
+
+  // 7. Supplement-aware recipe suggestions
+  if (person.bloodType && labReports.length > 0) {
+    insights.push(...generateSupplementRecipeSuggestions(person, labReports));
   }
 
   // Deduplicate by ID and sort by severity
@@ -385,6 +391,36 @@ function generateGoalTips(person: Person): ProactiveInsight[] {
       description: 'Vitamin C, zinc, and vitamin D are your immune trifecta. Citrus fruits, shellfish, and mushrooms are excellent sources.',
       prompt: 'What foods strengthen my immune system?',
     },
+    {
+      keywords: ['inflam', 'joint', 'pain', 'arthritis', 'crp'],
+      title: '🔥 Anti-inflammatory tip',
+      description: 'Omega-3 (salmon, walnuts), turmeric with black pepper, and tart cherries are top anti-inflammatory foods backed by research.',
+      prompt: 'Give me an anti-inflammatory meal plan with smoothies and juices',
+    },
+    {
+      keywords: ['brain', 'focus', 'memory', 'cognitive', 'nootropic'],
+      title: '🧠 Brain nutrition tip',
+      description: 'Blueberries, fatty fish, walnuts, and lion\'s mane mushroom support cognitive function. Try a brain-boosting smoothie daily.',
+      prompt: 'What supplements and foods boost brain health?',
+    },
+    {
+      keywords: ['hormone', 'thyroid', 'cortisol', 'testosterone', 'estrogen'],
+      title: '⚖️ Hormone balance tip',
+      description: 'Brazil nuts (selenium for thyroid), ashwagandha (cortisol), and cruciferous vegetables (estrogen metabolism) support hormone balance.',
+      prompt: 'What supplements help with hormone balance?',
+    },
+    {
+      keywords: ['heart', 'cardio', 'cholesterol', 'blood pressure'],
+      title: '❤️ Heart health tip',
+      description: 'CoQ10, omega-3, magnesium, and beet juice nitrates support cardiovascular function. Our heart juice recipe is a great start.',
+      prompt: 'Show me heart-healthy recipes and juices',
+    },
+    {
+      keywords: ['detox', 'liver', 'cleanse', 'toxin'],
+      title: '🌿 Detox nutrition tip',
+      description: 'Support your liver with cruciferous vegetables, beets, dandelion greens, and milk thistle. Try our Liver Detox Green Juice.',
+      prompt: 'Give me a liver detox juice recipe for my blood type',
+    },
   ];
 
   for (const tip of goalTips) {
@@ -423,6 +459,71 @@ function crossRefToInsight(ref: CrossReference): ProactiveInsight {
     chatPrompt: `Tell me more about: ${ref.title}`,
     createdAt: ref.createdAt,
   };
+}
+
+// ─── Supplement-Recipe Suggestions ──────────────────────────────────────────
+
+function generateSupplementRecipeSuggestions(
+  person: Person,
+  reports: LabReport[],
+): ProactiveInsight[] {
+  const insights: ProactiveInsight[] = [];
+  const latest = reports[0];
+  if (!latest?.results) return insights;
+
+  // Map abnormal lab markers to recipe search queries
+  const LAB_TO_RECIPE: Record<string, string> = {
+    iron: 'iron booster',
+    ferritin: 'iron',
+    'vitamin d': 'immune',
+    b12: 'energy',
+    cholesterol: 'cholesterol heart',
+    ldl: 'cholesterol heart',
+    hdl: 'heart omega-3',
+    triglyceride: 'heart omega-3',
+    crp: 'anti-inflammatory',
+    tsh: 'thyroid',
+    glucose: 'blood sugar',
+    a1c: 'blood sugar',
+    hemoglobin: 'iron booster',
+    alt: 'liver detox',
+    ast: 'liver detox',
+    magnesium: 'magnesium sleep',
+  };
+
+  const abnormal = latest.results.filter(r => r.status !== 'normal');
+  if (abnormal.length === 0) return insights;
+
+  // Find recipes that match abnormal markers AND user's blood type
+  for (const result of abnormal.slice(0, 3)) {
+    const testKey = result.testName.toLowerCase();
+    let searchQuery = '';
+
+    for (const [key, query] of Object.entries(LAB_TO_RECIPE)) {
+      if (testKey.includes(key)) {
+        searchQuery = `blood type ${person.bloodType || ''} ${query}`;
+        break;
+      }
+    }
+    if (!searchQuery) continue;
+
+    const recipes = searchRecipeDatabase(searchQuery);
+    if (recipes.length === 0) continue;
+
+    const topRecipe = recipes[0];
+    insights.push({
+      id: `recipe-for-${testKey}`,
+      category: 'health_tip',
+      severity: 'suggestion',
+      title: `🥤 Recipe for your ${result.testName}: ${topRecipe.name}`,
+      description: `Your ${result.testName} is ${result.status}. Try "${topRecipe.name}" (${topRecipe.category}) — ${topRecipe.healthBenefits[0]}.`,
+      chatPrompt: `Give me the full recipe for ${topRecipe.name} and explain how it helps my ${result.testName}`,
+      targetPage: 'weekly-plan',
+      createdAt: new Date().toISOString(),
+    });
+  }
+
+  return insights;
 }
 
 // ─── Insight Summary (for AI system prompt) ─────────────────────────────────

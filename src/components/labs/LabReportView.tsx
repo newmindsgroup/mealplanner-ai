@@ -1,8 +1,10 @@
 import { useState, useEffect } from 'react';
 import { 
   ArrowLeft, Download, FileText, AlertCircle, CheckCircle, Image as ImageIcon,
-  TrendingUp, Info, Brain, Loader2, Zap, Lightbulb, Shield, Heart,
+  TrendingUp, Info, Brain, Loader2, Zap, Lightbulb, Shield, Heart, Sparkles,
 } from 'lucide-react';
+import SwarmAnalysisPanel from '../shared/SwarmAnalysisPanel';
+import { checkSwarmHealth, type SwarmHealthStatus } from '../../services/swarmService';
 import { useStore } from '../../store/useStore';
 import { useAssessmentStore } from '../../store/assessmentStore';
 import { generateLabNeuroCorrelation, type NeuroLabCorrelation } from '../../services/aiNeuroAnalysis';
@@ -31,6 +33,8 @@ export default function LabReportView() {
   const [reportId, setReportId] = useState<string | null>(null);
   const [neuroCorrelation, setNeuroCorrelation] = useState<NeuroLabCorrelation | null>(null);
   const [isLoadingCorrelation, setIsLoadingCorrelation] = useState(false);
+  const [swarmHealth, setSwarmHealth] = useState<SwarmHealthStatus | null>(null);
+  const [showDeepAnalysis, setShowDeepAnalysis] = useState(false);
 
   useEffect(() => {
     // Extract report ID from hash
@@ -39,6 +43,8 @@ export default function LabReportView() {
       const id = hash.replace('#/labs/report/', '');
       setReportId(id);
     }
+    // Check swarm availability
+    checkSwarmHealth().then(setSwarmHealth).catch(() => {});
   }, []);
   
   const report = reportId ? labReports.find(r => r.id === reportId) : null;
@@ -132,6 +138,19 @@ export default function LabReportView() {
               View Original
             </button>
           )}
+          {swarmHealth?.status === 'healthy' && (
+            <button
+              onClick={() => setShowDeepAnalysis(!showDeepAnalysis)}
+              className={`flex items-center gap-2 px-4 py-2 rounded-lg transition-all shadow-md hover:shadow-lg ${
+                showDeepAnalysis
+                  ? 'bg-purple-700 text-white'
+                  : 'bg-gradient-to-r from-purple-600 to-indigo-600 text-white hover:from-purple-700 hover:to-indigo-700'
+              }`}
+            >
+              <Sparkles className="w-5 h-5" />
+              {showDeepAnalysis ? 'Hide Deep Analysis' : 'Deep Analysis'}
+            </button>
+          )}
           <button
             onClick={() => exportLabReportToPDF(report)}
             className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
@@ -198,6 +217,81 @@ export default function LabReportView() {
             AI Insights
           </h2>
           <p className="text-gray-700">{report.aiInsights}</p>
+        </div>
+      )}
+
+      {/* NourishAI Deep Analysis */}
+      {showDeepAnalysis && (
+        <div className="mb-6 space-y-4">
+          <SwarmAnalysisPanel
+            taskType="lab_deep_analysis"
+            context={{
+              memberName: report.memberName,
+              testDate: report.testDate,
+              labName: report.labName,
+              results: report.results.map(r => ({
+                testName: r.testName,
+                value: r.value,
+                unit: r.unit,
+                status: r.status,
+                category: r.category,
+                referenceRangeLow: r.referenceRangeLow,
+                referenceRangeHigh: r.referenceRangeHigh,
+              })),
+              neuroProfile: neuroResult ? {
+                primaryDeficiency: neuroResult.primaryDeficiency,
+                scores: neuroResult.scores,
+              } : undefined,
+            }}
+            title="Deep Lab Analysis"
+            description="Multi-agent analysis — biomarkers evaluated against optimal functional ranges with PubMed citations."
+            buttonLabel="Analyze My Labs"
+            accentColor="purple"
+            gradientClasses="from-purple-50 to-indigo-50 dark:from-purple-950/20 dark:to-indigo-950/20"
+          />
+
+          <SwarmAnalysisPanel
+            taskType="lab_report_pdf"
+            context={{
+              memberName: report.memberName,
+              testDate: report.testDate,
+              results: report.results.map(r => ({
+                testName: r.testName,
+                value: r.value,
+                unit: r.unit,
+                status: r.status,
+                category: r.category,
+                referenceRangeLow: r.referenceRangeLow,
+                referenceRangeHigh: r.referenceRangeHigh,
+              })),
+            }}
+            title="Generate Deep Report PDF"
+            description="Professional clinical-grade lab report with charts, trends, and food-based interventions."
+            buttonLabel="Generate PDF Report"
+            accentColor="blue"
+            gradientClasses="from-blue-50 to-cyan-50 dark:from-blue-950/20 dark:to-cyan-950/20"
+          />
+
+          <SwarmAnalysisPanel
+            taskType="lab_trend_charts"
+            context={{
+              memberName: report.memberName,
+              currentReport: {
+                testDate: report.testDate,
+                results: report.results.map(r => ({
+                  testName: r.testName,
+                  value: r.value,
+                  unit: r.unit,
+                  status: r.status,
+                })),
+              },
+            }}
+            title="Trend Analysis Charts"
+            description="Statistical trend analysis with radar charts, heatmaps, and delta tracking."
+            buttonLabel="Generate Charts"
+            accentColor="green"
+            gradientClasses="from-green-50 to-emerald-50 dark:from-green-950/20 dark:to-emerald-950/20"
+          />
         </div>
       )}
 

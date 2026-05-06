@@ -53,13 +53,14 @@ const PAGE_CONTEXT_MAP: Record<string, PageContextHint> = {
     quickActions: ['profile-update', 'goals'],
   },
   'weekly-plan': {
-    systemPromptAddition: 'The user is viewing their weekly meal plan. Help with meal suggestions, swaps, nutrition balance, and scheduling.',
+    systemPromptAddition: 'The user is viewing their weekly meal plan. Help with meal suggestions, swaps, nutrition balance, scheduling, juicing ideas, and smoothie recipes.',
     suggestedPrompts: [
       { label: 'Swap a Meal', prompt: 'Suggest a swap for today\'s lunch that\'s blood-type compatible', icon: 'RefreshCw' },
-      { label: 'Add Variety', prompt: 'My meals feel repetitive — suggest new dishes using my pantry items', icon: 'Sparkles' },
+      { label: 'Smoothie Ideas', prompt: 'Suggest 3 health smoothies I can make based on my blood type and health goals', icon: 'GlassWater' },
+      { label: 'Juicing Recipes', prompt: 'Give me juicing recipes that support my lab results and blood type', icon: 'Apple' },
       { label: 'Nutrition Check', prompt: 'Am I hitting my macros this week? Analyze my meal plan.', icon: 'BarChart' },
     ],
-    quickActions: ['swap-meal', 'nutrition-check', 'meal-prep'],
+    quickActions: ['swap-meal', 'smoothie-recipes', 'juicing-recipes', 'nutrition-check', 'meal-prep'],
   },
   'my-pantry': {
     systemPromptAddition: 'The user is managing their pantry. Help with pantry organization, expiration tracking, shopping needs, and using up ingredients.',

@@ -80,11 +80,12 @@ export default function ChatPanel({ activeTab = 'home' }: ChatPanelProps) {
       addChatMessage(userMessage as any); // backward compat
     }
 
-    // Loading message
+    // Loading message — detect what tools might be used for richer feedback
+    const toolHints = getToolUseHints(userInput);
     const loadingMessage: EnhancedChatMessage = {
       id: crypto.randomUUID(),
       role: 'assistant',
-      content: 'Thinking...',
+      content: toolHints || 'Thinking...',
       timestamp: new Date().toISOString(),
       sessionId,
       status: 'sending',
@@ -357,4 +358,34 @@ export default function ChatPanel({ activeTab = 'home' }: ChatPanelProps) {
       </div>
     </div>
   );
+}
+
+// ─── Tool-Use Loading Hints ─────────────────────────────────────────────────
+// Shows the user what data the AI is fetching in real-time
+
+function getToolUseHints(input: string): string | null {
+  const lower = input.toLowerCase();
+  const hints: string[] = [];
+
+  if (/\b(supplement|herb|adaptogen|ashwagandha|turmeric|berberine|rhodiola|lion'?s?\s*mane|echinacea|reishi|cordyceps)\b/.test(lower)) {
+    hints.push('🔬 Searching supplement databases');
+  }
+  if (/\b(interact|safe\s*(to|with)|combin|mix|take\s*(with|together)|medication|drug|warfarin|metformin|statin)\b/.test(lower)) {
+    hints.push('⚕️ Checking drug-supplement interactions');
+  }
+  if (/\b(study|studies|research|clinical\s*trial|evidence|pubmed|journal)\b/.test(lower)) {
+    hints.push('📚 Searching PubMed & clinical trials');
+  }
+  if (/\b(blood\s*(work|test|panel|results?)|lab\s*(results?|report)|biomarker|hemoglobin|a1c|cholesterol|tsh|ferritin|crp)\b/.test(lower)) {
+    hints.push('🩸 Analyzing biomarker data');
+  }
+  if (/\b(juice|juicing|smoothie|shake|recipe|blend)\b/.test(lower)) {
+    hints.push('🥤 Searching recipe database');
+  }
+  if (/\b(nutrition|calories|protein|carbs?|macro|vitamin|mineral|nutrient)\b/.test(lower)) {
+    hints.push('🥗 Querying USDA nutrition data');
+  }
+
+  if (hints.length === 0) return null;
+  return hints.join('\n') + '\n\n⏳ Gathering evidence...';
 }

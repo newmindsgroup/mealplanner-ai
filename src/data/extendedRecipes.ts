@@ -1,0 +1,173 @@
+/**
+ * Extended Recipes — Batch 2: Breakfast, Detox, Kids, Fitness
+ * Based on D'Adamo blood type classifications + functional nutrition
+ */
+import type { RecipeResult } from './recipeDatabase';
+
+export const EXTENDED_RECIPES: RecipeResult[] = [
+  // ── BREAKFAST ─────────────────────────────────────────────────
+  {
+    name: 'Type O Egg & Spinach Scramble',
+    category: 'meal',
+    tags: ['blood-type-o', 'breakfast', 'high-protein', 'quick', 'iron'],
+    bloodTypes: ['O+', 'O-'],
+    ingredients: ['3 eggs', '2 cups spinach', '1/4 onion diced', '2 tbsp olive oil', '1 tsp turmeric', 'sea salt and pepper', 'fresh parsley'],
+    instructions: ['Heat olive oil, sauté onion 2 min', 'Add spinach, cook until wilted', 'Whisk eggs with turmeric, pour over spinach', 'Scramble gently until set, season and garnish'],
+    healthBenefits: ['Eggs are "Neutral" for Type O', 'Spinach is "Beneficial" — provides iron', 'No toast/wheat needed — Type O avoids grains', 'Turmeric fights Type O inflammation tendency'],
+    nutritionHighlights: '~320 cal, 22g protein, iron + choline',
+    prepTime: '10 min', servings: 1,
+  },
+  {
+    name: 'Type A Overnight Oats with Berries',
+    category: 'meal',
+    tags: ['blood-type-a', 'breakfast', 'meal-prep', 'fiber', 'antioxidant'],
+    bloodTypes: ['A+', 'A-'],
+    ingredients: ['1/2 cup rolled oats', '1 cup soy milk', '1/2 cup blueberries', '1 tbsp peanut butter', '1 tbsp maple syrup', '1 tbsp chia seeds', '1/4 tsp cinnamon'],
+    instructions: ['Combine oats, soy milk, chia seeds, cinnamon in jar', 'Refrigerate overnight (8+ hours)', 'Top with blueberries, peanut butter, maple syrup', 'Can be eaten cold or warmed'],
+    healthBenefits: ['Oats are "Beneficial" grain for Type A', 'Soy milk and peanut butter — both "Beneficial" for A', 'Blueberries provide antioxidants Type A needs', 'No dairy — Type A "Avoid" food'],
+    nutritionHighlights: '~380 cal, 16g protein, 10g fiber, antioxidants',
+    prepTime: '5 min + overnight', servings: 1,
+  },
+  {
+    name: 'Type B Egg & Goat Cheese Frittata',
+    category: 'meal',
+    tags: ['blood-type-b', 'breakfast', 'high-protein', 'calcium', 'brunch'],
+    bloodTypes: ['B+', 'B-'],
+    ingredients: ['4 eggs', '1/4 cup goat cheese crumbled', '1 cup spinach', '1/4 cup mushrooms sliced', '1/4 red onion diced', '1 tbsp olive oil', 'fresh herbs (dill, parsley)', 'salt and pepper'],
+    instructions: ['Preheat broiler', 'Sauté onion, mushrooms in oven-safe skillet 3 min', 'Add spinach, cook 1 min', 'Pour whisked eggs over vegetables', 'Cook on stovetop 4 min, top with goat cheese', 'Broil 2-3 min until golden and set'],
+    healthBenefits: ['Eggs and goat cheese are "Beneficial" for Type B', 'Mushrooms are "Neutral" (not shiitake — those are "Avoid")', 'No chicken sausage — chicken is Type B "Avoid"', 'High calcium from goat cheese'],
+    nutritionHighlights: '~380 cal, 28g protein, calcium + B12 + choline',
+    prepTime: '15 min', servings: 2,
+  },
+  {
+    name: 'Type AB Millet Porridge with Walnuts',
+    category: 'meal',
+    tags: ['blood-type-ab', 'breakfast', 'grain', 'warm', 'fiber'],
+    bloodTypes: ['AB+', 'AB-'],
+    ingredients: ['1/2 cup millet', '1.5 cups water', '1/2 cup kefir', '1/4 cup walnuts chopped', '1/2 cup cherries or grapes', '1 tsp honey', '1/4 tsp cinnamon'],
+    instructions: ['Cook millet in water until tender and fluffy (20 min)', 'Stir in kefir for creaminess', 'Top with walnuts, fruit, honey, cinnamon'],
+    healthBenefits: ['Millet is "Beneficial" grain for Type AB', 'Kefir and walnuts are "Beneficial" for AB', 'No wheat or corn — Type AB "Avoid" grains', 'Small portions suit Type AB digestion'],
+    nutritionHighlights: '~360 cal, 12g protein, fiber + probiotics + omega-3',
+    prepTime: '25 min', servings: 1,
+  },
+
+  // ── DETOX / CLEANSE ───────────────────────────────────────────
+  {
+    name: 'Type O 3-Day Detox Juice (Day Starter)',
+    category: 'juice',
+    tags: ['blood-type-o', 'detox', 'cleanse', 'morning', 'liver'],
+    bloodTypes: ['O+', 'O-'],
+    ingredients: ['1/2 pineapple', '1 inch ginger', '1/2 lemon', '2 celery stalks', '1 cup kale'],
+    instructions: ['Juice pineapple, kale, celery, ginger, lemon', 'Drink first thing in morning on empty stomach', 'Follow with protein meal within 2 hours — Type O needs protein'],
+    healthBenefits: ['Pineapple and kale are "Beneficial" for Type O', 'Ginger supports Type O high stomach acid', 'No oranges — Type O "Avoid" citrus', 'Pairs with Type O need for protein-rich follow-up meal'],
+    nutritionHighlights: '~120 cal, enzymes + vitamin C + anti-inflammatory',
+    prepTime: '8 min', servings: 1,
+  },
+  {
+    name: 'Type A Gentle Green Cleanse Juice',
+    category: 'juice',
+    tags: ['blood-type-a', 'detox', 'cleanse', 'gentle', 'alkalizing'],
+    bloodTypes: ['A+', 'A-'],
+    ingredients: ['1 cucumber', '3 celery stalks', '2 cups romaine lettuce', '1/2 green apple', '1/2 lemon', 'small bunch parsley'],
+    instructions: ['Juice all ingredients slowly', 'Drink mid-morning for best absorption', 'Gentle enough for sensitive Type A digestion'],
+    healthBenefits: ['All ingredients are "Beneficial" or "Neutral" for Type A', 'Very alkalizing — supports Type A immune sensitivity', 'Parsley provides iron for plant-based Type A diet', 'No strong spices that irritate Type A stomach'],
+    nutritionHighlights: '~60 cal, highly alkalizing, chlorophyll + minerals',
+    prepTime: '8 min', servings: 1,
+  },
+
+  // ── FITNESS / PERFORMANCE ─────────────────────────────────────
+  {
+    name: 'Type O Pre-Workout Power Smoothie',
+    category: 'smoothie',
+    tags: ['blood-type-o', 'pre-workout', 'energy', 'fitness', 'performance'],
+    bloodTypes: ['O+', 'O-'],
+    ingredients: ['1 frozen banana', '1 cup rice milk', '1 scoop plant protein', '1 tbsp almond butter', '1 tsp maca powder', '1/2 tsp cinnamon', '1 tbsp cacao powder'],
+    instructions: ['Blend all ingredients until smooth', 'Drink 30-45 min before intense exercise', 'Type O thrives with vigorous exercise'],
+    healthBenefits: ['Maca supports endurance for Type O intense workouts', 'Rice milk avoids dairy — Type O "Avoid"', 'Banana provides quick energy', 'Almond butter for sustained fuel'],
+    nutritionHighlights: '~350 cal, 25g protein, pre-workout energy',
+    prepTime: '5 min', servings: 1,
+  },
+  {
+    name: 'Type A Post-Yoga Recovery Smoothie',
+    category: 'smoothie',
+    tags: ['blood-type-a', 'post-workout', 'recovery', 'calming', 'yoga'],
+    bloodTypes: ['A+', 'A-'],
+    ingredients: ['1 cup soy milk', '1/2 cup frozen cherries', '1/2 frozen banana', '1 tbsp peanut butter', '1 tbsp ground flaxseed', '1 tsp ashwagandha powder', '1 tsp honey'],
+    instructions: ['Blend all ingredients until smooth', 'Drink within 30 min of calming exercise', 'Type A benefits from yoga, tai chi, walking'],
+    healthBenefits: ['Soy milk and peanut butter are "Beneficial" for Type A', 'Cherries reduce muscle soreness (anti-inflammatory)', 'Ashwagandha lowers cortisol — key for stress-prone Type A', 'Flaxseed provides omega-3 without fish oil supplements'],
+    nutritionHighlights: '~310 cal, 16g protein, omega-3 + adaptogens',
+    prepTime: '5 min', servings: 1,
+  },
+
+  // ── KIDS-FRIENDLY ─────────────────────────────────────────────
+  {
+    name: 'Rainbow Veggie Smoothie (All Types)',
+    category: 'smoothie',
+    tags: ['kids', 'universal', 'hidden-veggies', 'breakfast', 'sweet'],
+    bloodTypes: [],
+    ingredients: ['1 frozen banana', '1/2 cup frozen mango', '1 cup spinach', '1/2 carrot', '1 cup rice or oat milk', '1 tsp honey', '1/4 tsp vanilla'],
+    instructions: ['Blend spinach, carrot, and milk first until green disappears', 'Add banana, mango, honey, vanilla', 'Blend until creamy — tastes like a tropical treat', 'Kids won\'t taste the veggies!'],
+    healthBenefits: ['Hides 2 servings of vegetables in sweet flavor', 'All ingredients safe across all blood types', 'No common allergens (nut-free, dairy-free option)', 'Natural sweetness from fruit — no added sugar needed'],
+    nutritionHighlights: '~200 cal, vitamins A + C + K, hidden veggies',
+    prepTime: '5 min', servings: 1,
+  },
+  {
+    name: 'Turkey & Sweet Potato Bites (All Types)',
+    category: 'snack',
+    tags: ['kids', 'universal', 'finger-food', 'protein', 'toddler'],
+    bloodTypes: [],
+    ingredients: ['1 lb ground turkey', '1 cup sweet potato mashed', '1/4 cup spinach finely chopped', '1 egg', '1/4 tsp garlic powder', '1/4 tsp onion powder', 'pinch of sea salt', '1 tbsp olive oil'],
+    instructions: ['Mash cooked sweet potato', 'Mix turkey, sweet potato, spinach, egg, spices', 'Form into 20 small balls', 'Bake at 375°F for 18-20 min until cooked through', 'Cool before serving — great for meal prep'],
+    healthBenefits: ['Turkey is safe for all blood types', 'Sweet potato and spinach add hidden nutrition', 'No wheat breadcrumbs — grain-free', 'High protein for growing kids'],
+    nutritionHighlights: '~60 cal per bite, 5g protein, vitamin A + iron',
+    prepTime: '30 min', servings: 20,
+  },
+
+  // ── SOUPS ─────────────────────────────────────────────────────
+  {
+    name: 'Type O Turkey Bone Broth Ramen',
+    category: 'soup',
+    tags: ['blood-type-o', 'comfort', 'gut-health', 'winter', 'protein'],
+    bloodTypes: ['O+', 'O-'],
+    ingredients: ['4 cups turkey bone broth', '4 oz rice noodles (not wheat)', '2 cups spinach', '2 soft-boiled eggs', '2 tbsp tamari', '1 inch ginger sliced', '2 cloves garlic', '1 green onion sliced', 'sesame oil drizzle'],
+    instructions: ['Simmer broth with ginger and garlic 10 min', 'Cook rice noodles separately per package', 'Add tamari to broth, remove ginger slices', 'Assemble: noodles in bowl, ladle broth, add spinach', 'Top with halved soft-boiled eggs, green onion, sesame oil'],
+    healthBenefits: ['Turkey broth is "Beneficial" protein source for Type O', 'Rice noodles avoid wheat — Type O "Avoid"', 'Bone broth supports Type O gut lining', 'High protein meal supports Type O energy needs'],
+    nutritionHighlights: '~420 cal, 30g protein, collagen + minerals',
+    prepTime: '25 min', servings: 2,
+  },
+  {
+    name: 'Type AB Miso-Tofu Soup',
+    category: 'soup',
+    tags: ['blood-type-ab', 'probiotic', 'gut-health', 'light', 'japanese'],
+    bloodTypes: ['AB+', 'AB-'],
+    ingredients: ['4 cups water', '3 tbsp white miso paste', '6 oz silken tofu cubed', '1 cup spinach', '2 green onions sliced', '1 sheet nori cut into strips', '1 tsp tamari'],
+    instructions: ['Heat water to just below boiling (do not boil miso)', 'Dissolve miso paste in a ladle of warm water, stir into pot', 'Add tofu cubes and spinach, simmer 2 min', 'Serve topped with green onion and nori strips'],
+    healthBenefits: ['Tofu and miso are "Beneficial" soy for Type AB', 'Fermented miso provides probiotics', 'Light meal suits Type AB low stomach acid', 'No heavy meat that Type AB struggles to digest'],
+    nutritionHighlights: '~150 cal, 12g protein, probiotics + isoflavones',
+    prepTime: '10 min', servings: 2,
+  },
+
+  // ── SALADS ────────────────────────────────────────────────────
+  {
+    name: 'Type A Quinoa-Walnut Power Salad',
+    category: 'salad',
+    tags: ['blood-type-a', 'plant-based', 'lunch', 'fiber', 'omega-3'],
+    bloodTypes: ['A+', 'A-'],
+    ingredients: ['1 cup cooked quinoa', '2 cups mixed greens', '1/4 cup walnuts', '1/4 cup dried cranberries', '1/2 cucumber diced', '2 tbsp olive oil', '1 tbsp lemon juice', '1 tsp Dijon mustard', 'fresh parsley'],
+    instructions: ['Cook and cool quinoa', 'Toss greens, cucumber, cranberries, walnuts', 'Add quinoa on top', 'Whisk olive oil, lemon, mustard for dressing', 'Drizzle and toss gently'],
+    healthBenefits: ['Quinoa and walnuts are "Beneficial" for Type A', 'No cheese — dairy is Type A "Avoid"', 'Plant-based complete protein from quinoa', 'Walnuts provide omega-3 for Type A heart health'],
+    nutritionHighlights: '~420 cal, 14g protein, 12g fiber, omega-3',
+    prepTime: '15 min', servings: 1,
+  },
+  {
+    name: 'Type O Grilled Steak & Arugula Salad',
+    category: 'salad',
+    tags: ['blood-type-o', 'high-protein', 'iron', 'lunch', 'paleo'],
+    bloodTypes: ['O+', 'O-'],
+    ingredients: ['6 oz flank steak', '3 cups arugula', '1/4 red onion sliced', '1/4 cup walnuts', '2 tbsp olive oil', '1 tbsp balsamic vinegar', '1 tsp dried oregano', 'sea salt and pepper'],
+    instructions: ['Season steak with oregano, salt, pepper', 'Grill or pan-sear to desired doneness, rest 5 min', 'Slice steak thin against the grain', 'Toss arugula, onion, walnuts with olive oil and balsamic', 'Top with sliced steak'],
+    healthBenefits: ['Beef is "Beneficial" #1 protein for Type O', 'No cheese or croutons — avoids Type O problem foods', 'Arugula is a peppery green safe for Type O', 'Walnuts provide healthy fats'],
+    nutritionHighlights: '~480 cal, 38g protein, 6mg iron, omega-3',
+    prepTime: '20 min', servings: 1,
+  },
+];

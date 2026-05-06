@@ -8,14 +8,17 @@ export type AIProvider = 'openai' | 'anthropic' | 'openrouter';
 
 /** Task types for intelligent model routing */
 export type AITaskType = 
-  | 'chat'           // General conversation → gpt-4o
-  | 'meal_plan'      // Meal plan generation → Gemma 3
-  | 'label_analysis' // Food label parsing → gpt-4o
-  | 'fitness_coach'  // Fitness advice → Llama 4
-  | 'quick_tip'      // Fast nutrition tips → Mistral Small
-  | 'nutrition_qa'   // Health Q&A → Gemma 3
-  | 'grocery'        // Grocery lists → Mistral Small
-  | 'recipe';        // Recipe generation → Gemma 3
+  | 'chat'                // General conversation → gpt-4o
+  | 'meal_plan'           // Meal plan generation → Gemma 3
+  | 'label_analysis'      // Food label parsing → gpt-4o
+  | 'fitness_coach'       // Fitness advice → Llama 4
+  | 'quick_tip'           // Fast nutrition tips → Mistral Small
+  | 'nutrition_qa'        // Health Q&A → Gemma 3
+  | 'grocery'             // Grocery lists → Mistral Small
+  | 'recipe'              // Recipe generation → Gemma 3
+  | 'supplement_research' // Supplement/herb research → DeepSeek V3
+  | 'blood_work_analysis' // Lab interpretation → Claude 3.5 Sonnet
+  | 'interaction_check';  // Drug-supplement safety → GPT-4o
 
 export enum AIErrorType {
   QUOTA_EXCEEDED = 'QUOTA_EXCEEDED',

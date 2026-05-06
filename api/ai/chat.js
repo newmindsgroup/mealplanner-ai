@@ -119,14 +119,18 @@ const MODEL_REGISTRY = {
 // Maps task types to the best model for the job, with fallback chains.
 
 const TASK_ROUTES = {
-  chat:           ['gpt-4o', 'claude-3.5-sonnet', 'gemma-3-27b', 'llama-4-scout'],
-  meal_plan:      ['gemma-3-27b', 'claude-3.5-sonnet', 'gpt-4o', 'llama-4-scout'],
-  label_analysis: ['gpt-4o', 'gemini-2.5-flash', 'claude-3.5-sonnet', 'gemma-3-27b'],
-  fitness_coach:  ['llama-4-scout', 'claude-3.5-sonnet', 'gpt-4o', 'gemma-3-27b'],
-  quick_tip:      ['mistral-small', 'gpt-4o-mini', 'gemma-3-27b', 'gpt-4o'],
-  nutrition_qa:   ['gemma-3-27b', 'gpt-4o', 'claude-3.5-sonnet', 'llama-4-scout'],
-  grocery:        ['mistral-small', 'gemma-3-27b', 'gpt-4o-mini', 'gpt-4o'],
-  recipe:         ['gemma-3-27b', 'claude-3.5-sonnet', 'gpt-4o', 'llama-4-scout'],
+  chat:                ['gpt-4o', 'claude-3.5-sonnet', 'gemma-3-27b', 'llama-4-scout'],
+  meal_plan:           ['gemma-3-27b', 'claude-3.5-sonnet', 'gpt-4o', 'llama-4-scout'],
+  label_analysis:      ['gpt-4o', 'gemini-2.5-flash', 'claude-3.5-sonnet', 'gemma-3-27b'],
+  fitness_coach:       ['llama-4-scout', 'claude-3.5-sonnet', 'gpt-4o', 'gemma-3-27b'],
+  quick_tip:           ['mistral-small', 'gpt-4o-mini', 'gemma-3-27b', 'gpt-4o'],
+  nutrition_qa:        ['gemma-3-27b', 'gpt-4o', 'claude-3.5-sonnet', 'llama-4-scout'],
+  grocery:             ['mistral-small', 'gemma-3-27b', 'gpt-4o-mini', 'gpt-4o'],
+  recipe:              ['gemma-3-27b', 'claude-3.5-sonnet', 'gpt-4o', 'llama-4-scout'],
+  // New task types for supplement intelligence
+  supplement_research: ['deepseek-v3', 'llama-4-scout', 'claude-3.5-sonnet', 'gpt-4o'],
+  blood_work_analysis: ['claude-3.5-sonnet', 'gpt-4o', 'deepseek-v3', 'gemma-3-27b'],
+  interaction_check:   ['gpt-4o', 'claude-3.5-sonnet', 'deepseek-v3', 'gemma-3-27b'],
 };
 
 // ─── Handler ───────────────────────────────────────────────────────────────────

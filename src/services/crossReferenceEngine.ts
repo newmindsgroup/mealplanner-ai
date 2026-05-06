@@ -3,6 +3,8 @@
  * Produces actionable intelligence by finding relationships between siloed health data.
  */
 import { useStore } from '../store/useStore';
+import { findBiomarker } from '../data/biomarkerDatabase';
+import { checkInteractions } from '../data/interactionDatabase';
 import type { LabReport, LabResult } from '../types/labs';
 import type { PantryItem } from '../types/pantry';
 import type { Person } from '../types/index';
@@ -146,6 +148,11 @@ export function runCrossReferenceAnalysis(): CrossReference[] {
   // 4. Goal alignment checks
   if (person.goals.length > 0) {
     results.push(...checkGoalAlignment(person, labReports, pantryItems));
+  }
+
+  // 5. Lab → Supplement recommendations
+  if (labReports.length > 0) {
+    results.push(...suggestSupplementsFromLabs(labReports, person));
   }
 
   return results.sort((a, b) => {
@@ -457,4 +464,98 @@ function formatCategory(cat: string): string {
     inflammation: 'Inflammation',
   };
   return map[cat] || cat;
+}
+
+// ─── Lab → Supplement Recommendations ───────────────────────────────────────
+
+function suggestSupplementsFromLabs(
+  reports: LabReport[],
+  _person: Person,
+): CrossReference[] {
+  const refs: CrossReference[] = [];
+  const latest = reports[0];
+  if (!latest?.results) return refs;
+
+  const SUPPLEMENT_MAP: Record<string, { supplements: string[]; dosageNotes: string }> = {
+    'vitamin d': {
+      supplements: ['Vitamin D3 (cholecalciferol)', 'Vitamin D3+K2 complex'],
+      dosageNotes: 'Common dose: 2,000-5,000 IU/day with food. Get 25(OH)D level rechecked in 8-12 weeks.',
+    },
+    'b12': {
+      supplements: ['Methylcobalamin (B12)', 'B-Complex with active forms'],
+      dosageNotes: '1,000-2,000mcg sublingual daily. Methylcobalamin preferred over cyanocobalamin.',
+    },
+    'iron': {
+      supplements: ['Iron bisglycinate (gentlest form)', 'Ferrous sulfate'],
+      dosageNotes: 'Take with vitamin C. Avoid with calcium, coffee, tea. Recheck ferritin in 3 months.',
+    },
+    'ferritin': {
+      supplements: ['Iron bisglycinate', 'Liver capsules (desiccated)'],
+      dosageNotes: '18-27mg elemental iron daily. Iron bisglycinate causes less GI upset.',
+    },
+    'magnesium': {
+      supplements: ['Magnesium glycinate (best absorbed)', 'Magnesium threonate (brain support)'],
+      dosageNotes: '200-400mg elemental magnesium at bedtime. Glycinate least likely to cause GI issues.',
+    },
+    'tsh': {
+      supplements: ['Selenium (200mcg/day)', 'Zinc', 'Ashwagandha (if TSH is high)'],
+      dosageNotes: 'Selenium supports T4→T3 conversion. Ashwagandha may lower TSH in hypothyroidism.',
+    },
+    'cholesterol': {
+      supplements: ['Omega-3 fish oil (EPA/DHA)', 'Plant sterols/stanols', 'Bergamot extract'],
+      dosageNotes: '2-4g EPA+DHA for triglycerides. Plant sterols: 2g/day. Discuss with doctor if on statins.',
+    },
+    'ldl': {
+      supplements: ['Plant sterols (2g/day)', 'Psyllium fiber', 'Bergamot polyphenols'],
+      dosageNotes: 'Soluble fiber: 10-25g/day. Red yeast rice contains lovastatin — do NOT combine with statins.',
+    },
+    'crp': {
+      supplements: ['Omega-3 (high EPA)', 'Curcumin with piperine', 'SPM (Specialized Pro-resolving Mediators)'],
+      dosageNotes: 'EPA at 2g+/day. Curcumin: 500mg with black pepper extract for absorption.',
+    },
+    'glucose': {
+      supplements: ['Berberine (500mg 2-3x/day)', 'Chromium picolinate', 'Alpha-lipoic acid'],
+      dosageNotes: 'Berberine rivals metformin in studies. If on diabetes meds, monitor blood sugar closely.',
+    },
+    'hemoglobin': {
+      supplements: ['Iron + Vitamin C combo', 'B12 + Folate'],
+      dosageNotes: 'Low hemoglobin may indicate iron, B12, or folate deficiency. Get a full CBC + iron panel.',
+    },
+  };
+
+  for (const result of latest.results) {
+    if (result.status === 'normal') continue;
+
+    const testKey = result.testName.toLowerCase();
+    let matchedSupp: { supplements: string[]; dosageNotes: string } | null = null;
+
+    for (const [key, data] of Object.entries(SUPPLEMENT_MAP)) {
+      if (testKey.includes(key) || key.includes(testKey)) {
+        matchedSupp = data;
+        break;
+      }
+    }
+
+    if (!matchedSupp) continue;
+
+    refs.push({
+      id: `lab-supp-${result.id || testKey}`,
+      type: 'lab-diet',
+      severity: result.status === 'critical' ? 'warning' : 'suggestion',
+      title: `💊 Supplements that may help your ${result.testName}`,
+      description: `Your ${result.testName} is ${result.status} (${result.value} ${result.unit}). These supplements have evidence for supporting this biomarker. Always consult your healthcare provider before starting new supplements.`,
+      sources: [
+        { domain: 'labs', label: result.testName, value: `${result.value} ${result.unit} (${result.status})` },
+        { domain: 'profile', label: 'Suggested supplements', value: matchedSupp.supplements.join(', ') },
+      ],
+      actions: [
+        ...matchedSupp.supplements.map(s => `Consider: ${s}`),
+        matchedSupp.dosageNotes,
+        '⚠️ Always check for drug interactions before starting any new supplement',
+      ],
+      createdAt: new Date().toISOString(),
+    });
+  }
+
+  return refs;
 }
