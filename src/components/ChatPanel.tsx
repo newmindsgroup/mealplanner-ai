@@ -1,90 +1,49 @@
-import { useState, useRef, useEffect } from 'react';
-import { Send, Mic, Volume2, VolumeX, ScanLine, ShoppingCart, Calendar, X, Pause, Play, Bot, User, MessageCircle, RefreshCw, Settings } from 'lucide-react';
+/**
+ * ChatPanel v2 — Multi-format AI chat with attachments, data extraction,
+ * rich message bubbles, drag-drop, and paste support.
+ */
+import { useState, useRef, useEffect, useCallback, useMemo } from 'react';
+import {
+  Bot, MessageCircle, X, History,
+  Calendar, ScanLine, ShoppingCart, Activity, Lightbulb,
+  User, Heart, Target, RefreshCw, Sparkles, BarChart3,
+  ChefHat, Clock, Search, Star, Repeat, List, AlertTriangle,
+  Upload, FlaskConical, TrendingUp, Dumbbell, Apple, Brain,
+  HelpCircle, Settings,
+} from 'lucide-react';
 import { useStore } from '../store/useStore';
+import { useChatSessionStore } from '../store/useChatSessionStore';
 import { useVoiceReader } from '../hooks/useVoiceReader';
-import VoiceInput from './VoiceInput';
-import LoadingSpinner from './LoadingSpinner';
+import ChatMessageBubble from './chat/ChatMessageBubble';
+import ChatInputArea from './chat/ChatInputArea';
+import ChatSessionSidebar from './chat/ChatSessionSidebar';
+import type { ChatAttachment, EnhancedChatMessage, ChatAction } from '../types/chat';
+import { detectIntent, extractStructuredData, commitExtraction } from '../services/chatDataRouter';
+import { getPageContext, buildContextualSystemPrompt } from '../services/smartAutofill';
 
-// Simple markdown-to-HTML converter for better message formatting
-function formatMarkdown(text: string): JSX.Element {
-  const lines = text.split('\n');
-  const elements: JSX.Element[] = [];
-  let currentList: string[] = [];
-  let key = 0;
+// Icon name → component mapping for dynamic context suggestions
+const ICON_MAP: Record<string, typeof Calendar> = {
+  Calendar, ScanLine, ShoppingCart, Activity, Lightbulb,
+  User, Heart, Target, RefreshCw, Sparkles, BarChart3,
+  ChefHat, Clock, Search, Star, Repeat, List, AlertTriangle,
+  Upload, FlaskConical, TrendingUp, Dumbbell, Apple, Brain,
+  HelpCircle, Settings, BarChart: BarChart3,
+};
 
-  const flushList = () => {
-    if (currentList.length > 0) {
-      elements.push(
-        <ul key={`list-${key++}`} className="list-disc list-inside space-y-1 my-2 ml-2">
-          {currentList.map((item, i) => (
-            <li key={i} className="text-sm">{item}</li>
-          ))}
-        </ul>
-      );
-      currentList = [];
-    }
-  };
-
-  lines.forEach((line, i) => {
-    // Bullet points
-    if (line.trim().startsWith('•') || line.trim().startsWith('-')) {
-      currentList.push(line.trim().substring(1).trim());
-      return;
-    }
-
-    // Flush list before non-list content
-    flushList();
-
-    // Headers
-    if (line.startsWith('###')) {
-      elements.push(
-        <h4 key={`h4-${key++}`} className="font-semibold text-sm mt-3 mb-1">
-          {line.substring(3).trim()}
-        </h4>
-      );
-    } else if (line.startsWith('##')) {
-      elements.push(
-        <h3 key={`h3-${key++}`} className="font-bold text-base mt-3 mb-2">
-          {line.substring(2).trim()}
-        </h3>
-      );
-    } else if (line.startsWith('**') && line.endsWith('**')) {
-      // Bold lines
-      elements.push(
-        <p key={`bold-${key++}`} className="font-bold text-sm my-1">
-          {line.substring(2, line.length - 2)}
-        </p>
-      );
-    } else if (line.trim() === '') {
-      // Empty line
-      elements.push(<div key={`space-${key++}`} className="h-2" />);
-    } else {
-      // Handle inline formatting
-      const formatted = line
-        .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
-        .replace(/\`(.*?)\`/g, '<code class="bg-gray-200 dark:bg-gray-700 px-1 py-0.5 rounded text-xs">$1</code>');
-      
-      elements.push(
-        <p 
-          key={`p-${key++}`} 
-          className="text-sm my-1"
-          dangerouslySetInnerHTML={{ __html: formatted }}
-        />
-      );
-    }
-  });
-
-  flushList();
-
-  return <div className="space-y-1">{elements}</div>;
+interface ChatPanelProps {
+  activeTab?: string;
 }
 
-export default function ChatPanel() {
-  const { chatMessages, addChatMessage, settings, people, currentPlan, knowledgeBase } = useStore();
-  const [input, setInput] = useState('');
-  const [isListening, setIsListening] = useState(false);
+export default function ChatPanel({ activeTab = 'home' }: ChatPanelProps) {
+  const { addChatMessage, settings, people, currentPlan, knowledgeBase } = useStore();
+  const sessionStore = useChatSessionStore();
   const [isExpanded, setIsExpanded] = useState(false);
+  const [sidebarOpen, setSidebarOpen] = useState(false);
   const [retryingMessageId, setRetryingMessageId] = useState<string | null>(null);
+
+  // Get active session messages
+  const activeSession = sessionStore.getActiveSession();
+  const messages = useMemo(() => activeSession?.messages || [], [activeSession]);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const { read, pause, resume, stop, isReading, isPaused } = useVoiceReader({
     autoRead: settings.voiceEnabled && settings.autoReadResponses,
@@ -95,85 +54,104 @@ export default function ChatPanel() {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   };
 
-  useEffect(() => {
-    scrollToBottom();
-  }, [chatMessages]);
+  useEffect(() => { scrollToBottom(); }, [messages]);
 
-  const handleSend = async (retryUserInput?: string) => {
-    const userInput = retryUserInput || input;
-    if (!userInput.trim()) return;
+  // ─── Send handler with attachment support ──────────────────────────────────
 
-    // Only add user message if not retrying
+  const handleSend = async (text: string, attachments: ChatAttachment[], retryUserInput?: string) => {
+    const userInput = retryUserInput || text;
+    if (!userInput.trim() && (!attachments || attachments.length === 0)) return;
+
+    // Build the enhanced user message
+    // Ensure we have an active session
+    const sessionId = sessionStore.ensureActiveSession();
+
     if (!retryUserInput) {
-      const userMessage = {
+      const userMessage: EnhancedChatMessage = {
         id: crypto.randomUUID(),
-        role: 'user' as const,
+        role: 'user',
         content: userInput,
         timestamp: new Date().toISOString(),
+        sessionId,
+        attachments: attachments.length > 0 ? attachments : undefined,
+        inputFormat: attachments.length > 0 ? 'file' : 'text',
       };
-      addChatMessage(userMessage);
-      setInput('');
+      sessionStore.addMessage(sessionId, userMessage);
+      addChatMessage(userMessage as any); // backward compat
     }
 
-    // Show loading message with spinner
-    const loadingMessage = {
+    // Loading message
+    const loadingMessage: EnhancedChatMessage = {
       id: crypto.randomUUID(),
-      role: 'assistant' as const,
+      role: 'assistant',
       content: 'Thinking...',
       timestamp: new Date().toISOString(),
+      sessionId,
+      status: 'sending',
     };
-    addChatMessage(loadingMessage);
+    sessionStore.addMessage(sessionId, loadingMessage);
 
     try {
-      // Import chat service
       const { chatWithAssistant } = await import('../services/chatService');
-      
+
+      // Build enriched prompt that includes attachment descriptions
+      let enrichedInput = userInput;
+      if (attachments && attachments.length > 0) {
+        const attachmentDescriptions = attachments.map((a) => {
+          if (a.type === 'image') return `[User attached an image: ${a.name}]`;
+          if (a.type === 'url') return `[User shared a URL: ${a.url}]`;
+          if (a.extractedText) return `[User attached ${a.name}]\nExtracted text:\n${a.extractedText}`;
+          return `[User attached a ${a.type} file: ${a.name}]`;
+        }).join('\n');
+        enrichedInput = `${userInput}\n\n${attachmentDescriptions}`;
+      }
+
       const context = {
         people,
         currentPlan: currentPlan || undefined,
-        knowledgeBase: knowledgeBase,
+        knowledgeBase,
+        pageContext: buildContextualSystemPrompt(activeTab),
       };
 
-      const response = await chatWithAssistant(userInput, context);
+      // Run chat response and data extraction in parallel
+      const intent = detectIntent(userInput, attachments);
+      const [response, extractedPayload] = await Promise.all([
+        chatWithAssistant(enrichedInput, context),
+        intent ? extractStructuredData(intent, userInput, attachments) : Promise.resolve(null),
+      ]);
 
-      // Remove loading message and add actual response
-      const assistantMessage = {
+      const assistantMessage: EnhancedChatMessage = {
         id: crypto.randomUUID(),
-        role: 'assistant' as const,
+        role: 'assistant',
         content: response,
         timestamp: new Date().toISOString(),
-        originalInput: userInput, // Store for retry
+        sessionId,
+        originalInput: userInput,
+        status: 'complete',
+        extractedData: extractedPayload ? [extractedPayload] : undefined,
       };
-      
-      addChatMessage(assistantMessage);
-      
-      // Auto-read response if voice is enabled
+
+      // Remove loading, add real response — in session store
+      sessionStore.removeMessage(sessionId, loadingMessage.id);
+      sessionStore.addMessage(sessionId, assistantMessage);
+      addChatMessage(assistantMessage as any); // backward compat
+
+      // Auto-read
       if (settings.voiceEnabled && settings.autoReadResponses) {
-        setTimeout(() => {
-          read(response);
-        }, 500);
+        setTimeout(() => read(response), 500);
       }
-      
-      // Remove loading message
-      const { chatMessages: currentMsgs } = useStore.getState();
-      useStore.setState({
-        chatMessages: currentMsgs.filter((m) => m.id !== loadingMessage.id),
-      });
     } catch (error) {
-      // Remove loading message and add error
-      addChatMessage({
+      const errorMessage: EnhancedChatMessage = {
         id: crypto.randomUUID(),
         role: 'assistant',
         content: `I encountered an error: ${error instanceof Error ? error.message : 'Unknown error'}. Please try again.`,
         timestamp: new Date().toISOString(),
-        originalInput: userInput, // Store for retry
-      });
-      
-      // Remove loading message
-      const { chatMessages: currentMsgs } = useStore.getState();
-      useStore.setState({
-        chatMessages: currentMsgs.filter((m) => m.id !== loadingMessage.id),
-      });
+        sessionId,
+        originalInput: userInput,
+        status: 'error',
+      };
+      sessionStore.removeMessage(sessionId, loadingMessage.id);
+      sessionStore.addMessage(sessionId, errorMessage);
     } finally {
       setRetryingMessageId(null);
     }
@@ -181,293 +159,201 @@ export default function ChatPanel() {
 
   const handleRetry = async (messageId: string, originalInput: string) => {
     setRetryingMessageId(messageId);
-    
-    // Remove the error message
-    const { chatMessages: currentMsgs } = useStore.getState();
-    useStore.setState({
-      chatMessages: currentMsgs.filter((m) => m.id !== messageId),
-    });
-    
-    // Retry the request
-    await handleSend(originalInput);
+    const sid = sessionStore.activeSessionId;
+    if (sid) sessionStore.removeMessage(sid, messageId);
+    await handleSend(originalInput, []);
   };
 
   const handleSpeak = (text: string) => {
-    if (isReading) {
-      if (isPaused) {
-        resume();
-      } else {
-        pause();
-      }
-    } else {
-      read(text);
-    }
+    if (isReading) { isPaused ? resume() : pause(); }
+    else { read(text); }
   };
 
-  const quickActions = [
-    { icon: Calendar, label: 'Plan My Week', action: () => setInput('Create a healthy meal plan for this week based on my blood type'), color: 'from-purple-500 to-pink-500' },
-    { icon: ScanLine, label: 'Analyze Label', action: () => setInput('Help me analyze a food label for blood type compatibility'), color: 'from-blue-500 to-cyan-500' },
-    { icon: ShoppingCart, label: 'Grocery List', action: () => setInput('Create a smart grocery list based on seasonal ingredients'), color: 'from-green-500 to-emerald-500' },
-  ];
-
-  // Check if message contains error indicators
-  const isErrorMessage = (content: string) => {
-    return content.includes('⚠️') || 
-           content.includes('🔑') || 
-           content.includes('⏱️') || 
-           content.includes('🌐') || 
-           content.includes('❓') ||
-           content.includes('error') ||
-           content.includes('Error') ||
-           content.includes('offline mode');
+  const handleActionClick = (action: ChatAction) => {
+    console.log('Action clicked:', action);
   };
 
-  const isConfigMessage = (content: string) => {
-    return content.includes('configure') || 
-           content.includes('API key') ||
-           content.includes('offline mode') ||
-           content.includes('.env');
-  };
+  // ─── Data extraction confirmation handlers ─────────────────────────────────
 
-  // Floating button when collapsed
+  const handleConfirmExtraction = useCallback(async (messageId: string, extractionId: string) => {
+    const sid = sessionStore.activeSessionId;
+    if (!sid) return;
+
+    const session = sessionStore.getActiveSession();
+    const message = session?.messages.find((m) => m.id === messageId);
+    if (!message?.extractedData) return;
+
+    const payload = message.extractedData.find((d) => d.id === extractionId);
+    if (!payload) return;
+
+    const success = await commitExtraction(payload, useStore);
+
+    sessionStore.updateMessage(sid, messageId, {
+      extractedData: message.extractedData.map((d) =>
+        d.id === extractionId ? { ...d, status: success ? 'confirmed' as const : 'pending' as const, confirmedAt: new Date().toISOString() } : d
+      ),
+    });
+  }, [sessionStore]);
+
+  const handleDismissExtraction = useCallback((messageId: string, extractionId: string) => {
+    const sid = sessionStore.activeSessionId;
+    if (!sid) return;
+
+    const session = sessionStore.getActiveSession();
+    const message = session?.messages.find((m) => m.id === messageId);
+    if (!message?.extractedData) return;
+
+    sessionStore.updateMessage(sid, messageId, {
+      extractedData: message.extractedData.map((d) =>
+        d.id === extractionId ? { ...d, status: 'dismissed' as const } : d
+      ),
+    });
+  }, [sessionStore]);
+
+  // Error/config detection
+  const isErrorMessage = (content: string) =>
+    ['⚠️', '🔑', '⏱️', '🌐', '❓', 'error', 'Error', 'offline mode'].some((s) => content.includes(s));
+  const isConfigMessage = (content: string) =>
+    ['configure', 'API key', 'offline mode', '.env'].some((s) => content.includes(s));
+
+  // Dynamic quick actions based on active page
+  const pageContext = useMemo(() => getPageContext(activeTab), [activeTab]);
+  const quickActions = useMemo(() => {
+    const gradients = [
+      'from-purple-500 to-pink-500',
+      'from-blue-500 to-cyan-500',
+      'from-green-500 to-emerald-500',
+    ];
+    return pageContext.suggestedPrompts.slice(0, 3).map((sp, i) => ({
+      icon: ICON_MAP[sp.icon] || Sparkles,
+      label: sp.label,
+      prompt: sp.prompt,
+      color: gradients[i % gradients.length],
+    }));
+  }, [pageContext]);
+
+  // ─── Collapsed (floating button) ──────────────────────────────────────────
+
   if (!isExpanded) {
     return (
-      <>
-        <button
-          onClick={() => setIsExpanded(true)}
-          className="fixed bottom-6 right-6 z-50 bg-gradient-to-r from-primary-500 to-primary-600 text-white p-4 rounded-full shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-110 group"
-          aria-label="Open Nourish AI"
-        >
-          <MessageCircle className="w-6 h-6 group-hover:scale-110 transition-transform" />
-          {chatMessages.length > 0 && (
-            <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs w-6 h-6 rounded-full flex items-center justify-center font-bold animate-pulse">
-              {chatMessages.length}
-            </span>
-          )}
-        </button>
-      </>
+      <button
+        onClick={() => setIsExpanded(true)}
+        className="fixed bottom-6 right-6 z-50 bg-gradient-to-r from-primary-500 to-primary-600 text-white p-4 rounded-full shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-110 group"
+        aria-label="Open Nourish AI"
+      >
+        <MessageCircle className="w-6 h-6 group-hover:scale-110 transition-transform" />
+        {messages.length > 0 && (
+          <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs w-6 h-6 rounded-full flex items-center justify-center font-bold animate-pulse">
+            {messages.length}
+          </span>
+        )}
+      </button>
     );
   }
 
+  // ─── Expanded panel ───────────────────────────────────────────────────────
+
   return (
-    <div 
-      className={`border-t border-gray-200/50 dark:border-gray-800/50 bg-white/95 dark:bg-gray-900/95 backdrop-blur-xl flex flex-col transition-all duration-300 ${
-        isExpanded ? 'h-[32rem]' : 'h-0'
-      }`}
-      style={{ boxShadow: '0 2px 15px -3px rgba(0, 0, 0, 0.07), 0 10px 20px -2px rgba(0, 0, 0, 0.04)' }}
+    <div
+      className="border-t border-gray-200/50 dark:border-gray-800/50 bg-white/95 dark:bg-gray-900/95 backdrop-blur-xl flex transition-all duration-300 h-[32rem] overflow-hidden"
+      style={{ boxShadow: '0 2px 15px -3px rgba(0,0,0,0.07), 0 10px 20px -2px rgba(0,0,0,0.04)' }}
     >
-      {/* Collapsible Header */}
-      <div className="flex items-center justify-between px-4 py-3 border-b border-gray-200/50 dark:border-gray-800/50 bg-gradient-to-r from-primary-50/50 to-transparent dark:from-primary-950/20 dark:to-transparent">
-        <div className="flex items-center gap-3">
-          <div className="relative">
-            <div className="absolute inset-0 bg-primary-400/20 blur-xl rounded-full"></div>
-            <Bot className="w-6 h-6 text-primary-600 dark:text-primary-400 relative z-10" />
+      {/* Session sidebar */}
+      <ChatSessionSidebar
+        isOpen={sidebarOpen}
+        onClose={() => setSidebarOpen(false)}
+        onSessionSelect={() => setSidebarOpen(false)}
+      />
+
+      {/* Main chat area */}
+      <div className="flex-1 flex flex-col min-w-0">
+        {/* Header */}
+        <div className="flex items-center justify-between px-4 py-3 border-b border-gray-200/50 dark:border-gray-800/50 bg-gradient-to-r from-primary-50/50 to-transparent dark:from-primary-950/20 dark:to-transparent">
+          <div className="flex items-center gap-3 min-w-0">
+            <div className="relative flex-shrink-0">
+              <div className="absolute inset-0 bg-primary-400/20 blur-xl rounded-full"></div>
+              <Bot className="w-6 h-6 text-primary-600 dark:text-primary-400 relative z-10" />
+            </div>
+            <div className="min-w-0">
+              <h3 className="font-bold text-gray-900 dark:text-white">Nourish AI</h3>
+              <p className="text-xs text-gray-500 dark:text-gray-400 truncate">
+                {activeSession ? activeSession.title : 'Multi-format nutrition expert'}
+              </p>
+            </div>
           </div>
-          <div>
-            <h3 className="font-bold text-gray-900 dark:text-white">Nourish AI</h3>
-            <p className="text-xs text-gray-500 dark:text-gray-400">Your nutrition expert</p>
+          <div className="flex items-center gap-1 flex-shrink-0">
+            <button onClick={() => setSidebarOpen(!sidebarOpen)}
+              className={`p-2 rounded-lg transition-colors ${sidebarOpen ? 'bg-primary-100 dark:bg-primary-900/30 text-primary-600' : 'hover:bg-gray-100 dark:hover:bg-gray-800 text-gray-500 dark:text-gray-400'}`}
+              aria-label="Chat history">
+              <History className="w-4 h-4" />
+            </button>
+            <button onClick={() => setIsExpanded(false)}
+              className="p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300 transition-colors"
+              aria-label="Collapse chat">
+              <X className="w-5 h-5" />
+            </button>
           </div>
         </div>
-        <button
-          onClick={() => setIsExpanded(false)}
-          className="p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300 transition-colors"
-          aria-label="Collapse chat"
-        >
-          <X className="w-5 h-5" />
-        </button>
-      </div>
-      <div className="flex-1 overflow-y-auto p-4 space-y-4 scrollbar-thin">
-        {chatMessages.length === 0 ? (
-          <div className="text-center text-gray-500 dark:text-gray-400 py-12 animate-fade-in">
-            <div className="relative mb-6">
-              <div className="absolute inset-0 bg-primary-400/20 blur-3xl rounded-full"></div>
-              <Bot className="w-16 h-16 text-primary-500 dark:text-primary-400 relative z-10 mx-auto" />
-            </div>
+
+        {/* Messages area */}
+        <div className="flex-1 overflow-y-auto p-4 space-y-4 scrollbar-thin">
+          {messages.length === 0 ? (
+            <div className="text-center text-gray-500 dark:text-gray-400 py-12 animate-fade-in">
+              <div className="relative mb-6">
+                <div className="absolute inset-0 bg-primary-400/20 blur-3xl rounded-full"></div>
+                <Bot className="w-16 h-16 text-primary-500 dark:text-primary-400 relative z-10 mx-auto" />
+              </div>
               <p className="text-lg font-semibold mb-2 text-gray-700 dark:text-gray-300">
                 Hi! I'm Nourish AI 🌿
               </p>
-              <p className="text-sm mb-6">Ask me about meal planning, blood type nutrition, fitness meals, or label analysis…</p>
-            <div className="flex flex-wrap gap-3 justify-center">
-              {quickActions.map((action, idx) => {
-                const Icon = action.icon;
-                return (
-                  <button
-                    key={idx}
-                    onClick={action.action}
-                    className={`group flex items-center gap-2 px-4 py-2.5 bg-gradient-to-r ${action.color} text-white rounded-xl hover:shadow-lg transition-all duration-200 hover:scale-105 animate-fade-in`}
-                    style={{ animationDelay: `${idx * 0.1}s` }}
-                  >
-                    <Icon className="w-4 h-4 group-hover:scale-110 transition-transform" />
-                    <span className="text-sm font-semibold">{action.label}</span>
-                  </button>
-                );
-              })}
-            </div>
-          </div>
-        ) : (
-          <>
-            {chatMessages.map((message, idx) => (
-              <div
-                key={message.id}
-                className={`flex ${message.role === 'user' ? 'justify-end' : 'justify-start'} animate-fade-in`}
-                style={{ animationDelay: `${idx * 0.05}s` }}
-              >
-                <div className={`flex items-start gap-3 max-w-[85%] ${message.role === 'user' ? 'flex-row-reverse' : ''}`}>
-                  {/* Avatar */}
-                  <div className={`flex-shrink-0 w-8 h-8 rounded-full flex items-center justify-center ${
-                    message.role === 'user'
-                      ? 'bg-gradient-to-br from-primary-500 to-primary-600 text-white'
-                      : 'bg-gradient-to-br from-gray-200 to-gray-300 dark:from-gray-700 dark:to-gray-600 text-gray-700 dark:text-gray-300'
-                  }`}>
-                    {message.role === 'user' ? (
-                      <User className="w-4 h-4" />
-                    ) : (
-                      <Bot className="w-4 h-4" />
-                    )}
-                  </div>
-                  
-                  {/* Message Bubble */}
-                  <div
-                    className={`rounded-2xl p-4 transition-all duration-200 shadow-sm ${
-                      message.role === 'user'
-                        ? 'bg-gradient-to-br from-primary-600 to-primary-500 text-white'
-                        : isErrorMessage(message.content)
-                        ? 'bg-red-50 dark:bg-red-900/20 text-gray-900 dark:text-gray-100 border border-red-200 dark:border-red-800'
-                        : 'bg-gray-100 dark:bg-gray-800 text-gray-900 dark:text-gray-100 border border-gray-200 dark:border-gray-700'
-                    }`}
-                  >
-                    {message.content === 'Thinking...' ? (
-                      <div className="flex items-center gap-3">
-                        <LoadingSpinner size="sm" />
-                        <span className="text-sm font-medium">Thinking...</span>
-                      </div>
-                    ) : (
-                      <>
-                        {/* Format markdown content */}
-                        {formatMarkdown(message.content)}
-                        
-                        {/* Action buttons for assistant messages */}
-                        {message.role === 'assistant' && (
-                          <div className="mt-3 pt-3 border-t border-gray-200 dark:border-gray-700 flex items-center gap-2 flex-wrap">
-                            {/* Voice controls */}
-                            {settings.voiceEnabled && !isErrorMessage(message.content) && (
-                              <>
-                                <button
-                                  onClick={() => handleSpeak(message.content)}
-                                  className={`text-xs font-semibold hover:opacity-80 transition-opacity flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg ${
-                                    isReading && !isPaused
-                                      ? 'bg-primary-100 dark:bg-primary-900/30 text-primary-700 dark:text-primary-300'
-                                      : 'bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300'
-                                  }`}
-                                >
-                                  {isReading ? (
-                                    isPaused ? (
-                                      <>
-                                        <Play className="w-3.5 h-3.5" />
-                                        Resume
-                                      </>
-                                    ) : (
-                                      <>
-                                        <Pause className="w-3.5 h-3.5" />
-                                        Pause
-                                      </>
-                                    )
-                                  ) : (
-                                    <>
-                                      <Volume2 className="w-3.5 h-3.5" />
-                                      Read
-                                    </>
-                                  )}
-                                </button>
-                                {isReading && (
-                                  <button
-                                    onClick={stop}
-                                    className="text-xs font-semibold text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 px-2.5 py-1.5 rounded-lg transition-colors flex items-center gap-1.5"
-                                  >
-                                    <VolumeX className="w-3.5 h-3.5" />
-                                    Stop
-                                  </button>
-                                )}
-                              </>
-                            )}
-                            
-                            {/* Retry button for error messages */}
-                            {(isErrorMessage(message.content) || isConfigMessage(message.content)) && (message as any).originalInput && (
-                              <button
-                                onClick={() => handleRetry(message.id, (message as any).originalInput)}
-                                disabled={retryingMessageId === message.id}
-                                className="text-xs font-semibold bg-primary-100 dark:bg-primary-900/30 text-primary-700 dark:text-primary-300 hover:bg-primary-200 dark:hover:bg-primary-900/50 px-2.5 py-1.5 rounded-lg transition-colors flex items-center gap-1.5 disabled:opacity-50"
-                              >
-                                <RefreshCw className={`w-3.5 h-3.5 ${retryingMessageId === message.id ? 'animate-spin' : ''}`} />
-                                {retryingMessageId === message.id ? 'Retrying...' : 'Retry'}
-                              </button>
-                            )}
-                            
-                            {/* Config button for offline/config messages */}
-                            {isConfigMessage(message.content) && (
-                              <button
-                                onClick={() => {
-                                  // Navigate to settings or show config modal
-                                  setInput('How do I configure my API key?');
-                                }}
-                                className="text-xs font-semibold bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300 hover:bg-blue-200 dark:hover:bg-blue-900/50 px-2.5 py-1.5 rounded-lg transition-colors flex items-center gap-1.5"
-                              >
-                                <Settings className="w-3.5 h-3.5" />
-                                Setup Guide
-                              </button>
-                            )}
-                          </div>
-                        )}
-                      </>
-                    )}
-                  </div>
-                </div>
+              <p className="text-sm mb-2">
+                Send me text, images, lab reports, food labels, or any document — I'll analyze it and put the data where it belongs.
+              </p>
+              <p className="text-xs text-gray-400 mb-6">
+                📎 Attach files · 📷 Take photos · 🎤 Use voice · 📋 Paste images
+              </p>
+              <div className="flex flex-wrap gap-3 justify-center">
+                {quickActions.map((action, idx) => {
+                  const Icon = action.icon;
+                  return (
+                    <button key={idx}
+                      onClick={() => handleSend(action.prompt, [])}
+                      className={`group flex items-center gap-2 px-4 py-2.5 bg-gradient-to-r ${action.color} text-white rounded-xl hover:shadow-lg transition-all duration-200 hover:scale-105 animate-fade-in`}
+                      style={{ animationDelay: `${idx * 0.1}s` }}>
+                      <Icon className="w-4 h-4 group-hover:scale-110 transition-transform" />
+                      <span className="text-sm font-semibold">{action.label}</span>
+                    </button>
+                  );
+                })}
               </div>
-            ))}
-            <div ref={messagesEndRef} />
-          </>
-        )}
-      </div>
-
-      {/* Modern Input Area */}
-      <div className="p-4 border-t border-gray-200/50 dark:border-gray-800/50 bg-gray-50/50 dark:bg-gray-900/50">
-        <div className="flex items-center gap-3">
-          <VoiceInput
-            onTranscript={(text) => {
-              setInput(text);
-              setIsListening(false);
-            }}
-            isListening={isListening}
-            onToggle={() => setIsListening(!isListening)}
-          />
-          <div className="flex-1 relative">
-            <input
-              type="text"
-              value={input}
-              onChange={(e) => setInput(e.target.value)}
-              onKeyPress={(e) => e.key === 'Enter' && !e.shiftKey && handleSend()}
-              placeholder="Ask about meal planning, nutrition, or supplements..."
-              className="input pr-12"
-            />
-            {input.trim() && (
-              <button
-                onClick={() => setInput('')}
-                className="absolute right-3 top-1/2 transform -translate-y-1/2 p-1 rounded-lg hover:bg-gray-200 dark:hover:bg-gray-700 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 transition-colors"
-                aria-label="Clear input"
-              >
-                <X className="w-4 h-4" />
-              </button>
-            )}
-          </div>
-          <button
-            onClick={() => handleSend()}
-            disabled={!input.trim()}
-            className="btn btn-primary p-3 disabled:opacity-50 disabled:cursor-not-allowed group"
-            aria-label="Send message"
-          >
-            <Send className={`w-5 h-5 group-hover:translate-x-0.5 group-hover:-translate-y-0.5 transition-transform`} />
-          </button>
+            </div>
+          ) : (
+            <>
+              {messages.map((message) => (
+                <ChatMessageBubble
+                  key={message.id}
+                  message={message}
+                  isErrorMessage={isErrorMessage(message.content)}
+                  isConfigMessage={isConfigMessage(message.content)}
+                  voiceEnabled={settings.voiceEnabled}
+                  isReading={isReading}
+                  isPaused={isPaused}
+                  onSpeak={handleSpeak}
+                  onStopSpeaking={stop}
+                  onRetry={handleRetry}
+                  retryingMessageId={retryingMessageId}
+                  onActionClick={handleActionClick}
+                  onConfirmExtraction={handleConfirmExtraction}
+                  onDismissExtraction={handleDismissExtraction}
+                />
+              ))}
+              <div ref={messagesEndRef} />
+            </>
+          )}
         </div>
+
+        {/* Multi-format input area */}
+        <ChatInputArea onSend={handleSend} />
       </div>
     </div>
   );

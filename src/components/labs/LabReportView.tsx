@@ -1,9 +1,11 @@
 import { useState, useEffect } from 'react';
 import { 
   ArrowLeft, Download, FileText, AlertCircle, CheckCircle, Image as ImageIcon,
-  TrendingUp, Info
+  TrendingUp, Info, Brain, Loader2, Zap, Lightbulb, Shield, Heart,
 } from 'lucide-react';
 import { useStore } from '../../store/useStore';
+import { useAssessmentStore } from '../../store/assessmentStore';
+import { generateLabNeuroCorrelation, type NeuroLabCorrelation } from '../../services/aiNeuroAnalysis';
 import { format } from 'date-fns';
 import { exportLabReportToPDF } from '../../services/labExport';
 import { getLabEducation } from '../../data/labEducation';
@@ -11,10 +13,24 @@ import type { LabResult } from '../../types/labs';
 import { LAB_PANELS } from '../../types/labs';
 
 export default function LabReportView() {
-  const { labReports } = useStore();
+  const { labReports, people } = useStore();
+  const { assessments } = useAssessmentStore();
+
+  // Find neuro result: match lab report member to a person with a completed assessment
+  const findNeuroResult = (memberName: string) => {
+    const matchedPerson = people.find((p) => p.name === memberName);
+    if (matchedPerson && assessments[matchedPerson.id]?.isCompleted) {
+      return assessments[matchedPerson.id].result;
+    }
+    // Fallback: return the first completed assessment
+    const first = Object.values(assessments).find((a) => a.isCompleted);
+    return first?.result || null;
+  };
   const [showImage, setShowImage] = useState(false);
   const [selectedTest, setSelectedTest] = useState<LabResult | null>(null);
   const [reportId, setReportId] = useState<string | null>(null);
+  const [neuroCorrelation, setNeuroCorrelation] = useState<NeuroLabCorrelation | null>(null);
+  const [isLoadingCorrelation, setIsLoadingCorrelation] = useState(false);
 
   useEffect(() => {
     // Extract report ID from hash
@@ -26,6 +42,7 @@ export default function LabReportView() {
   }, []);
   
   const report = reportId ? labReports.find(r => r.id === reportId) : null;
+  const neuroResult = report ? findNeuroResult(report.memberName) : null;
 
   if (!report) {
     return (
@@ -181,6 +198,108 @@ export default function LabReportView() {
             AI Insights
           </h2>
           <p className="text-gray-700">{report.aiInsights}</p>
+        </div>
+      )}
+
+      {/* Neuro-Correlations Section */}
+      {neuroResult && (
+        <div className="bg-gradient-to-br from-purple-50 to-blue-50 dark:from-purple-950/20 dark:to-blue-950/20 rounded-lg p-6 mb-6 border border-purple-200 dark:border-purple-800">
+          <div className="flex items-center justify-between mb-4">
+            <h2 className="text-xl font-bold text-gray-800 dark:text-white flex items-center gap-2">
+              <Brain className="w-6 h-6 text-purple-600" />
+              Neuro-Correlations
+            </h2>
+            {!neuroCorrelation && !isLoadingCorrelation && (
+              <button
+                onClick={async () => {
+                  setIsLoadingCorrelation(true);
+                  try {
+                    const labData = report.results.map(r => ({
+                      testName: r.testName,
+                      value: r.value,
+                      unit: r.unit,
+                      referenceRangeLow: r.referenceRangeLow,
+                      referenceRangeHigh: r.referenceRangeHigh,
+                    }));
+                    const correlation = await generateLabNeuroCorrelation(labData, neuroResult);
+                    setNeuroCorrelation(correlation);
+                  } catch (err) {
+                    console.error('Correlation error:', err);
+                  } finally {
+                    setIsLoadingCorrelation(false);
+                  }
+                }}
+                className="flex items-center gap-2 px-4 py-2 bg-purple-600 hover:bg-purple-700 text-white rounded-lg text-sm font-medium transition-colors"
+              >
+                <Brain className="w-4 h-4" />
+                Analyze Correlations
+              </button>
+            )}
+          </div>
+
+          {isLoadingCorrelation && (
+            <div className="flex items-center gap-3 py-8 justify-center">
+              <Loader2 className="w-5 h-5 text-purple-600 animate-spin" />
+              <span className="text-gray-600 dark:text-gray-400">Cross-referencing your blood work with your neurotransmitter profile...</span>
+            </div>
+          )}
+
+          {neuroCorrelation && (
+            <div className="space-y-4">
+              {/* Synthesis narrative */}
+              <div className="prose dark:prose-invert max-w-none text-sm text-gray-700 dark:text-gray-300 whitespace-pre-line leading-relaxed">
+                {neuroCorrelation.synthesis}
+              </div>
+
+              {/* Individual correlations */}
+              {neuroCorrelation.correlations.length > 0 && (
+                <div className="space-y-2 mt-4">
+                  {neuroCorrelation.correlations.map((corr, i) => {
+                    const getImpactColor = () => {
+                      if (corr.impact === 'contributing_to_deficiency') return 'border-red-200 bg-red-50 dark:bg-red-950/20 dark:border-red-800';
+                      if (corr.impact === 'supporting') return 'border-green-200 bg-green-50 dark:bg-green-950/20 dark:border-green-800';
+                      return 'border-gray-200 bg-gray-50 dark:bg-gray-800 dark:border-gray-700';
+                    };
+                    const getCatIcon = () => {
+                      switch (corr.neurotransmitter) {
+                        case 'dopamine': return <Zap className="w-4 h-4 text-yellow-500" />;
+                        case 'acetylcholine': return <Lightbulb className="w-4 h-4 text-blue-500" />;
+                        case 'gaba': return <Shield className="w-4 h-4 text-green-500" />;
+                        case 'serotonin': return <Heart className="w-4 h-4 text-red-500" />;
+                        default: return <Brain className="w-4 h-4 text-gray-500" />;
+                      }
+                    };
+                    return (
+                      <div key={i} className={`p-3 rounded-lg border ${getImpactColor()}`}>
+                        <div className="flex items-center gap-2 mb-1">
+                          {getCatIcon()}
+                          <span className="font-semibold text-sm text-gray-900 dark:text-white">{corr.biomarker}: {corr.value}</span>
+                          <span className="text-xs capitalize font-medium text-gray-500">→ {corr.neurotransmitter}</span>
+                        </div>
+                        <p className="text-xs text-gray-600 dark:text-gray-300 mb-1">{corr.relationship}</p>
+                        <p className="text-xs font-medium text-purple-700 dark:text-purple-400">💡 {corr.actionItem}</p>
+                      </div>
+                    );
+                  })}
+                </div>
+              )}
+
+              {/* Recovery Protocol */}
+              {neuroCorrelation.recoveryProtocol && (
+                <div className="mt-4 p-4 bg-white dark:bg-gray-800 rounded-lg border border-purple-200 dark:border-purple-800">
+                  <h3 className="font-semibold text-gray-900 dark:text-white mb-2 text-sm">📋 Recovery Protocol</h3>
+                  <p className="text-sm text-gray-700 dark:text-gray-300 whitespace-pre-line">{neuroCorrelation.recoveryProtocol}</p>
+                </div>
+              )}
+            </div>
+          )}
+
+          {!neuroCorrelation && !isLoadingCorrelation && (
+            <p className="text-sm text-gray-500 dark:text-gray-400">
+              Your Braverman assessment shows a <span className="font-medium capitalize text-purple-600">{neuroResult.primaryDeficiency || 'balanced'}</span> profile. 
+              Click "Analyze Correlations" to discover how your blood work connects to your brain chemistry.
+            </p>
+          )}
         </div>
       )}
 

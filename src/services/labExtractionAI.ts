@@ -269,7 +269,8 @@ export function validateLabValue(value: any, testName: string): {
  */
 export async function enhanceLabData(
   report: ExtractedLabData,
-  patientInfo?: { age?: number; sex?: 'male' | 'female'; bloodType?: string }
+  patientInfo?: { age?: number; sex?: 'male' | 'female'; bloodType?: string },
+  neuroProfile?: { primaryDeficiency: string | null; deficiencyLevels: Record<string, string> }
 ): Promise<string> {
   const aiService = getAIService();
   if (!aiService) return '';
@@ -279,19 +280,23 @@ export async function enhanceLabData(
       ? `Patient: ${patientInfo.sex || 'unknown'}, Age: ${patientInfo.age || 'unknown'}, Blood Type: ${patientInfo.bloodType || 'unknown'}`
       : 'Patient demographics unknown';
 
+    const neuroContext = neuroProfile?.primaryDeficiency
+      ? `\nNEURO-NUTRITIONAL CONTEXT: This patient has completed a Braverman Nature Assessment and shows a ${neuroProfile.primaryDeficiency} deficiency (${neuroProfile.deficiencyLevels[neuroProfile.primaryDeficiency]}). Deficiency levels: ${Object.entries(neuroProfile.deficiencyLevels).map(([k, v]) => `${k}=${v}`).join(', ')}. When analyzing their blood work, specifically look for biomarkers that may be CONTRIBUTING to or EXPLAINING this neurotransmitter deficiency (e.g., low Vitamin D/B12 → Serotonin deficiency, low Iron/Ferritin → Dopamine deficiency, low Magnesium → GABA deficiency). Highlight these correlations prominently.`
+      : '';
+
     const resultsText = report.results.map(r => 
       `${r.testName}: ${r.value} ${r.unit}`
     ).join(', ');
 
-    const prompt = `${context}
+    const prompt = `${context}${neuroContext}
 Lab Results: ${resultsText}
 
-Provide 2-3 personalized insights considering the patient's demographics and blood type diet principles where relevant. Focus on actionable lifestyle factors.`;
+Provide 2-3 personalized insights considering the patient's demographics, blood type diet principles, and neurotransmitter profile where relevant. Focus on actionable lifestyle factors. If neuro context is provided, explicitly connect lab findings to their brain chemistry.`;
 
     const enhancement = await aiService.chat([
       {
         role: 'system',
-        content: 'You are a health educator specializing in personalized nutrition and wellness based on lab results and blood type.',
+        content: 'You are a functional medicine health educator specializing in personalized nutrition, neurotransmitter optimization, and wellness based on lab results and blood type.',
       },
       {
         role: 'user',
@@ -299,7 +304,7 @@ Provide 2-3 personalized insights considering the patient's demographics and blo
       },
     ], {
       temperature: 0.6,
-      maxTokens: 400,
+      maxTokens: 600,
     });
 
     return enhancement.trim();

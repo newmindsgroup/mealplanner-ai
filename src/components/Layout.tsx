@@ -140,7 +140,7 @@ export default function Layout() {
             </Suspense>
           </div>
         </main>
-        <ChatPanel />
+        <ChatPanel activeTab={activeTab} />
       </div>
 
       {/* Mobile Bottom Navigation */}

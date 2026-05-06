@@ -30,6 +30,7 @@ const TAB_LABELS: Record<TabType, string> = {
   'household': 'Household',
   'user-profile': 'My Profile',
   'fitness': 'Fitness & Training',
+  'neuro-assessment': 'Brain Assessment',
 };
 
 export default function DashboardHeader({ activeTab, onToggleSidebar }: DashboardHeaderProps) {
