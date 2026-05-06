@@ -109,13 +109,15 @@ if (!rootElement) {
       import('react-router-dom'),
       import('./contexts/AuthContext'),
       import('./contexts/HouseholdContext'),
-      import('./contexts/SubscriptionContext')
+      import('./contexts/SubscriptionContext'),
+      import('./contexts/UsageTrackerContext')
     ]).then(([
       { default: App },
       { BrowserRouter },
       { AuthProvider },
       { HouseholdProvider },
-      { SubscriptionProvider }
+      { SubscriptionProvider },
+      { UsageTrackerProvider }
     ]) => {
       console.log('✅ App component loaded, rendering...');
       
@@ -125,7 +127,9 @@ if (!rootElement) {
             <AuthProvider>
               <HouseholdProvider>
                 <SubscriptionProvider>
-                  <App />
+                  <UsageTrackerProvider>
+                    <App />
+                  </UsageTrackerProvider>
                 </SubscriptionProvider>
               </HouseholdProvider>
             </AuthProvider>

@@ -9,6 +9,8 @@
 import { BLOOD_TYPE_RECIPES } from './bloodTypeRecipes';
 import { EXTENDED_RECIPES } from './extendedRecipes';
 import { DINNER_DESSERT_RECIPES } from './dinnerDessertRecipes';
+import { INTERNATIONAL_RECIPES } from './internationalRecipes';
+import { SPECIALTY_RECIPES } from './specialtyRecipes';
 
 // ─── Types ──────────────────────────────────────────────────────────────────
 
@@ -218,6 +220,8 @@ const RECIPES: RecipeResult[] = [
   ...BLOOD_TYPE_RECIPES,
   ...EXTENDED_RECIPES,
   ...DINNER_DESSERT_RECIPES,
+  ...INTERNATIONAL_RECIPES,
+  ...SPECIALTY_RECIPES,
 ];
 
 // ─── Search Function ────────────────────────────────────────────────────────

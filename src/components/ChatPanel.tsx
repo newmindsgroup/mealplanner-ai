@@ -23,6 +23,8 @@ import type { ChatAttachment, EnhancedChatMessage, ChatAction } from '../types/c
 import { detectIntent, extractStructuredData, commitExtraction } from '../services/chatDataRouter';
 import { getPageContext, buildContextualSystemPrompt } from '../services/smartAutofill';
 import { checkSwarmHealth, startSwarmTask, type SwarmHealthStatus, type SwarmTaskType } from '../services/swarmService';
+import { useUsageTracker } from '../contexts/UsageTrackerContext';
+import UsageLimitBanner from './shared/UsageLimitBanner';
 
 // Icon name → component mapping for dynamic context suggestions
 const ICON_MAP: Record<string, typeof Calendar> = {
@@ -40,6 +42,7 @@ interface ChatPanelProps {
 export default function ChatPanel({ activeTab = 'home' }: ChatPanelProps) {
   const { addChatMessage, settings, people, currentPlan, knowledgeBase } = useStore();
   const sessionStore = useChatSessionStore();
+  const usageTracker = useUsageTracker();
   const [isExpanded, setIsExpanded] = useState(false);
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [retryingMessageId, setRetryingMessageId] = useState<string | null>(null);
@@ -71,6 +74,10 @@ export default function ChatPanel({ activeTab = 'home' }: ChatPanelProps) {
   const handleSend = async (text: string, attachments: ChatAttachment[], retryUserInput?: string) => {
     const userInput = retryUserInput || text;
     if (!userInput.trim() && (!attachments || attachments.length === 0)) return;
+
+    // Usage tracking: check limit and record
+    if (!usageTracker.canUse('chat')) return;
+    usageTracker.recordUsage('chat');
 
     // Build the enhanced user message
     // Ensure we have an active session
@@ -431,6 +438,9 @@ export default function ChatPanel({ activeTab = 'home' }: ChatPanelProps) {
             />
           </div>
         )}
+
+        {/* Usage limit warning */}
+        <UsageLimitBanner type="chat" className="mx-3 mb-2" />
 
         {/* Multi-format input area */}
         <ChatInputArea onSend={handleSend} />

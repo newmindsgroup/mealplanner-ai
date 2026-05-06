@@ -1,5 +1,6 @@
 // SwarmAnalysisPanel — Reusable component for displaying NourishAI agent responses
 // Used across labs, neuro, fitness, and meal planning sections
+// Gated behind 'swarm_intelligence' feature (Pro tier minimum)
 
 import { useState } from 'react';
 import {
@@ -10,6 +11,8 @@ import {
   startSwarmTask, sendSwarmMessage, saveSwarmFile,
   type SwarmTaskType, type SwarmThreadResponse, type SwarmFile,
 } from '../../services/swarmService';
+import { useSubscription } from '../../contexts/SubscriptionContext';
+import UpgradeGate from './UpgradeGate';
 
 interface SwarmAnalysisPanelProps {
   /** Which swarm task to execute */
@@ -43,6 +46,13 @@ export default function SwarmAnalysisPanel({
   gradientClasses = 'from-purple-50 to-indigo-50 dark:from-purple-950/20 dark:to-indigo-950/20',
   autoStart = false,
 }: SwarmAnalysisPanelProps) {
+  const { canAccess } = useSubscription();
+
+  // Gate: Swarm intelligence requires Pro tier minimum
+  if (!canAccess('swarm_intelligence')) {
+    return <UpgradeGate feature="swarm_intelligence" compact />;
+  }
+
   const [isLoading, setIsLoading] = useState(false);
   const [response, setResponse] = useState<SwarmThreadResponse | null>(null);
   const [threadId, setThreadId] = useState<string | null>(null);

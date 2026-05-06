@@ -17,6 +17,7 @@ import { useAssessmentStore } from '../../store/assessmentStore';
 import SwarmAnalysisPanel from '../shared/SwarmAnalysisPanel';
 import { FeatureGuard } from '../shared/UpgradeGate';
 import { checkSwarmHealth, type SwarmHealthStatus } from '../../services/swarmService';
+import { generateHealthReportPDF } from '../../services/healthReportPDF';
 
 interface CrossDomainSummary {
   hasLabs: boolean;
@@ -39,6 +40,8 @@ export default function CrossDomainHealthReport() {
     overview: true,
     reports: true,
   });
+  const [pdfGenerating, setPdfGenerating] = useState(false);
+  const [pdfError, setPdfError] = useState<string | null>(null);
 
   useEffect(() => {
     checkSwarmHealth().then(setSwarmHealth).catch(() => {});
@@ -154,6 +157,26 @@ export default function CrossDomainHealthReport() {
                 Cross-domain analysis powered by NourishAI
               </p>
             </div>
+            <button
+              onClick={async () => {
+                setPdfGenerating(true);
+                setPdfError(null);
+                try {
+                  await generateHealthReportPDF({ personId: selectedPersonId });
+                } catch (err: any) {
+                  setPdfError(err.message || 'Failed to generate PDF');
+                }
+                setPdfGenerating(false);
+              }}
+              disabled={pdfGenerating}
+              className="flex items-center gap-2 px-4 py-2 bg-white/10 hover:bg-white/20 backdrop-blur-sm rounded-xl text-sm font-semibold text-white transition-all disabled:opacity-50"
+            >
+              {pdfGenerating ? (
+                <><Loader2 className="w-4 h-4 animate-spin" /> Generating...</>
+              ) : (
+                <><Download className="w-4 h-4" /> Download PDF</>
+              )}
+            </button>
           </div>
 
           {/* Person selector */}
@@ -176,6 +199,13 @@ export default function CrossDomainHealthReport() {
           )}
         </div>
       </div>
+      {/* PDF Error */}
+      {pdfError && (
+        <div className="bg-red-50 dark:bg-red-950/20 rounded-xl p-3 border border-red-200 dark:border-red-800 flex items-center gap-2">
+          <span className="text-red-500 text-sm font-medium">{pdfError}</span>
+          <button onClick={() => setPdfError(null)} className="ml-auto text-red-400 hover:text-red-600 text-xs font-bold">Dismiss</button>
+        </div>
+      )}
 
       {/* Data Availability Cards */}
       <div>

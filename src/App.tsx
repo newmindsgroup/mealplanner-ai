@@ -14,6 +14,8 @@ import PWAInstallPrompt from './components/PWAInstallPrompt';
 import SessionExpiryNotice from './components/SessionExpiryNotice';
 import OfflineIndicator from './components/OfflineIndicator';
 
+const NourishAIOnboarding = React.lazy(() => import('./components/onboarding/NourishAIOnboarding'));
+
 // Error Boundary Component
 class AppErrorBoundary extends Component<
   { children: React.ReactNode },
@@ -123,6 +125,9 @@ function App() {
   const [toast, setToast] = useState<{ message: string; type: 'success' | 'error' | 'info' } | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [storeReady, setStoreReady] = useState(false);
+  const [showNourishOnboarding, setShowNourishOnboarding] = useState(() => {
+    return !localStorage.getItem('nourishai_onboarding_seen');
+  });
   
   // Store state
   const [onboardingComplete, setOnboardingComplete] = useState(false);
@@ -280,6 +285,13 @@ function App() {
         <OfflineIndicator />
         <SessionExpiryNotice />
         <PWAInstallPrompt />
+
+        {/* NourishAI Onboarding (first-time experience) */}
+        {isAuthenticated && onboardingComplete && showNourishOnboarding && (
+          <Suspense fallback={null}>
+            <NourishAIOnboarding onComplete={() => setShowNourishOnboarding(false)} />
+          </Suspense>
+        )}
       </Suspense>
     );
   } catch (error) {
