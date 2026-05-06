@@ -130,6 +130,9 @@ app.use('/api/fitness/ai-recipe', require('./routes/fitnessRecipe'));
 // Data import route
 app.use('/api/import', require('./routes/import'));
 
+// NourishAI Swarm Intelligence Bridge
+app.use('/api/swarm', require('./routes/swarm'));
+
 // ============================================================================
 // SERVE FRONTEND (Production)
 // ============================================================================
