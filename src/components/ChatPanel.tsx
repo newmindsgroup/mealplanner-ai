@@ -205,9 +205,9 @@ export default function ChatPanel() {
   };
 
   const quickActions = [
-    { icon: ScanLine, label: 'Scan Label', action: () => setInput('Analyze this supplement label'), color: 'from-blue-500 to-cyan-500' },
-    { icon: ShoppingCart, label: 'Grocery List', action: () => setInput('Show my grocery list'), color: 'from-green-500 to-emerald-500' },
-    { icon: Calendar, label: 'View Plan', action: () => setInput('Show my weekly meal plan'), color: 'from-purple-500 to-pink-500' },
+    { icon: Calendar, label: 'Plan My Week', action: () => setInput('Create a healthy meal plan for this week based on my blood type'), color: 'from-purple-500 to-pink-500' },
+    { icon: ScanLine, label: 'Analyze Label', action: () => setInput('Help me analyze a food label for blood type compatibility'), color: 'from-blue-500 to-cyan-500' },
+    { icon: ShoppingCart, label: 'Grocery List', action: () => setInput('Create a smart grocery list based on seasonal ingredients'), color: 'from-green-500 to-emerald-500' },
   ];
 
   // Check if message contains error indicators
@@ -236,7 +236,7 @@ export default function ChatPanel() {
         <button
           onClick={() => setIsExpanded(true)}
           className="fixed bottom-6 right-6 z-50 bg-gradient-to-r from-primary-500 to-primary-600 text-white p-4 rounded-full shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-110 group"
-          aria-label="Open AI Assistant"
+          aria-label="Open Nourish AI"
         >
           <MessageCircle className="w-6 h-6 group-hover:scale-110 transition-transform" />
           {chatMessages.length > 0 && (
@@ -264,8 +264,8 @@ export default function ChatPanel() {
             <Bot className="w-6 h-6 text-primary-600 dark:text-primary-400 relative z-10" />
           </div>
           <div>
-            <h3 className="font-bold text-gray-900 dark:text-white">AI Assistant</h3>
-            <p className="text-xs text-gray-500 dark:text-gray-400">Ask me anything</p>
+            <h3 className="font-bold text-gray-900 dark:text-white">Nourish AI</h3>
+            <p className="text-xs text-gray-500 dark:text-gray-400">Your nutrition expert</p>
           </div>
         </div>
         <button
@@ -283,10 +283,10 @@ export default function ChatPanel() {
               <div className="absolute inset-0 bg-primary-400/20 blur-3xl rounded-full"></div>
               <Bot className="w-16 h-16 text-primary-500 dark:text-primary-400 relative z-10 mx-auto" />
             </div>
-            <p className="text-lg font-semibold mb-2 text-gray-700 dark:text-gray-300">
-              Start a conversation with your AI assistant!
-            </p>
-            <p className="text-sm mb-6">Ask about meal planning, nutrition, or supplements...</p>
+              <p className="text-lg font-semibold mb-2 text-gray-700 dark:text-gray-300">
+                Hi! I'm Nourish AI 🌿
+              </p>
+              <p className="text-sm mb-6">Ask me about meal planning, blood type nutrition, fitness meals, or label analysis…</p>
             <div className="flex flex-wrap gap-3 justify-center">
               {quickActions.map((action, idx) => {
                 const Icon = action.icon;
