@@ -17,7 +17,8 @@ import {
   Activity,
   Dumbbell,
   LayoutDashboard,
-  Brain
+  Brain,
+  Shield
 } from 'lucide-react';
 import type { TabType } from './Layout';
 
@@ -53,6 +54,7 @@ const tabGroups: TabGroup[] = [
       { id: 'food-guide', label: 'Food Guide', icon: Apple, description: 'Blood type foods' },
       { id: 'label-analyzer', label: 'Label Analyzer', icon: ScanLine, description: 'Scan labels' },
       { id: 'labs', label: 'Labs Analysis', icon: Activity, description: 'Blood work' },
+      { id: 'health-report', label: 'Health Report', icon: Shield, description: 'Cross-domain' },
       { id: 'progress', label: 'Progress', icon: TrendingUp, description: 'Tracking' },
     ],
   },

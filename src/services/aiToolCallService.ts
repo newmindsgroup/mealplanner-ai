@@ -18,6 +18,7 @@
 import { findBiomarker, evaluateResult } from '../data/biomarkerDatabase';
 import { checkInteractions, type InteractionResult } from '../data/interactionDatabase';
 import { searchRecipeDatabase, type RecipeResult } from '../data/recipeDatabase';
+import { lookupFoodCompatibility, getBloodTypeFoodReport, getSuperfoods, FOOD_COUNT } from '../data/bloodTypeFoodDatabase';
 
 // ─── Types ──────────────────────────────────────────────────────────────────
 
@@ -101,6 +102,13 @@ export function detectToolNeeds(message: string): ToolIntent | null {
     queries.searchTrials = trialSubject ? trialSubject[1].trim() : queries.searchSupplements || lower.slice(0, 80);
   }
 
+  // Blood type food compatibility check
+  if (/\b(blood\s*type|can\s+i\s+eat|should\s+i\s+eat|is\s+\w+\s+good\s+for|food.*(beneficial|avoid|neutral)|compatible|d'?adamo)\b/.test(lower) &&
+      /\b(food|eat|diet|type\s*[oab])\b/.test(lower)) {
+    tools.push('checkFoodCompatibility');
+    queries.checkFoodCompatibility = lower;
+  }
+
   if (tools.length === 0) return null;
   return { tools, queries };
 }
@@ -129,6 +137,8 @@ export async function executeTools(intent: ToolIntent): Promise<DataEnrichmentRe
           return await executeRecipeSearch(intent.queries.searchRecipes);
         case 'searchTrials':
           return await executeTrialSearch(intent.queries.searchTrials);
+        case 'checkFoodCompatibility':
+          return await executeFoodCompatibilityCheck(intent.queries.checkFoodCompatibility);
         default:
           return null;
       }
@@ -241,6 +251,63 @@ async function executeTrialSearch(query: string): Promise<ToolResult> {
     query,
     data: data.success ? data.data : [],
     citation: 'Source: ClinicalTrials.gov (clinicaltrials.gov)',
+  };
+}
+
+async function executeFoodCompatibilityCheck(query: string): Promise<ToolResult> {
+  // Extract blood type from query
+  const btMatch = query.match(/(?:blood\s*)?type\s*([oab]{1,2})/i);
+  const bloodType = btMatch ? btMatch[1].toUpperCase() : '';
+
+  if (!bloodType) {
+    // No blood type specified — return the general food database info
+    return {
+      tool: 'Blood Type Food Database',
+      query,
+      data: { message: `Database contains ${FOOD_COUNT} foods classified by D'Adamo. Ask about a specific blood type for personalized results.` },
+      citation: 'Source: D\'Adamo "Eat Right 4 Your Type" (dadamo.com)',
+    };
+  }
+
+  // Try to find a specific food in the query
+  const foods = ['salmon', 'chicken', 'beef', 'lamb', 'tofu', 'wheat', 'corn', 'rice', 'milk', 'yogurt',
+    'cheese', 'eggs', 'avocado', 'tomato', 'banana', 'orange', 'coffee', 'peanut', 'walnut', 'spinach',
+    'kale', 'broccoli', 'lentils', 'oats', 'quinoa', 'shrimp', 'pork', 'turkey', 'coconut', 'ginger'];
+
+  const matchedFood = foods.find(f => query.includes(f));
+
+  if (matchedFood) {
+    const result = lookupFoodCompatibility(matchedFood, bloodType);
+    if (result) {
+      return {
+        tool: 'Blood Type Food Database',
+        query: `${matchedFood} for Type ${bloodType}`,
+        data: {
+          food: result.food.food,
+          rating: result.rating,
+          category: result.food.category,
+          notes: result.food.notes,
+          allTypes: { O: result.food.O, A: result.food.A, B: result.food.B, AB: result.food.AB },
+        },
+        citation: 'Source: D\'Adamo "Eat Right 4 Your Type" (dadamo.com)',
+      };
+    }
+  }
+
+  // Return full blood type food report
+  const report = getBloodTypeFoodReport(bloodType);
+  const superfoods = getSuperfoods(bloodType);
+  return {
+    tool: 'Blood Type Food Database',
+    query: `Type ${bloodType} food report`,
+    data: {
+      beneficialCount: report.beneficial.length,
+      avoidCount: report.avoid.length,
+      topBeneficial: report.beneficial.slice(0, 10).map(f => `${f.food} (${f.category})`),
+      topAvoid: report.avoid.slice(0, 10).map(f => `${f.food} (${f.category})`),
+      superfoods: superfoods.slice(0, 8).map(f => f.food),
+    },
+    citation: 'Source: D\'Adamo "Eat Right 4 Your Type" (dadamo.com)',
   };
 }
 

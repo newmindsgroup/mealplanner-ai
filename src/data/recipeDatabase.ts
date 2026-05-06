@@ -302,3 +302,85 @@ export function getRecipesForBloodType(bloodType: string): RecipeResult[] {
 export function getRecipesForHealthConcern(concern: string): RecipeResult[] {
   return searchRecipeDatabase(concern);
 }
+
+/**
+ * Validate a recipe's ingredients against a blood type
+ * Returns warnings for any "avoid" ingredients
+ */
+export function validateRecipeForBloodType(
+  recipe: RecipeResult,
+  bloodType: string,
+): { safe: boolean; warnings: string[]; beneficial: string[] } {
+  // Lazy import to avoid circular deps
+  const { checkIngredientsCompatibility } = require('../data/bloodTypeFoodDatabase');
+  const results = checkIngredientsCompatibility(recipe.ingredients, bloodType);
+
+  const warnings = results
+    .filter((r: any) => r.rating === 'avoid')
+    .map((r: any) => `⚠️ ${r.food} is "Avoid" for Type ${bloodType.replace(/[+-]/, '')}${r.notes ? ` — ${r.notes}` : ''}`);
+
+  const beneficial = results
+    .filter((r: any) => r.rating === 'beneficial')
+    .map((r: any) => `✅ ${r.food} is "Beneficial" for Type ${bloodType.replace(/[+-]/, '')}`);
+
+  return {
+    safe: warnings.length === 0,
+    warnings,
+    beneficial,
+  };
+}
+
+/**
+ * Smart recipe recommendations — combines blood type + health concern + category
+ */
+export function getSmartRecipeRecommendations(params: {
+  bloodType?: string;
+  healthConcern?: string;
+  category?: RecipeResult['category'];
+  limit?: number;
+}): RecipeResult[] {
+  let results = [...RECIPES];
+
+  // Filter by blood type compatibility
+  if (params.bloodType) {
+    const bt = params.bloodType.replace(/[+-]/, '').toUpperCase();
+    results = results.filter(r =>
+      r.bloodTypes.length === 0 || r.bloodTypes.some(b => b.startsWith(bt))
+    );
+  }
+
+  // Filter by category
+  if (params.category) {
+    results = results.filter(r => r.category === params.category);
+  }
+
+  // Score by health concern relevance
+  if (params.healthConcern) {
+    const concern = params.healthConcern.toLowerCase();
+    results = results
+      .map(r => {
+        let score = 0;
+        for (const tag of r.tags) {
+          if (concern.includes(tag) || tag.includes(concern)) score += 10;
+        }
+        for (const benefit of r.healthBenefits) {
+          if (benefit.toLowerCase().includes(concern)) score += 5;
+        }
+        return { recipe: r, score };
+      })
+      .filter(r => r.score > 0)
+      .sort((a, b) => b.score - a.score)
+      .map(r => r.recipe);
+  }
+
+  return results.slice(0, params.limit || 10);
+}
+
+/** Total recipe count */
+export function getRecipeCount(): { total: number; byCategory: Record<string, number> } {
+  const byCategory: Record<string, number> = {};
+  for (const r of RECIPES) {
+    byCategory[r.category] = (byCategory[r.category] || 0) + 1;
+  }
+  return { total: RECIPES.length, byCategory };
+}

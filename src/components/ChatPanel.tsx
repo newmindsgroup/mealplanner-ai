@@ -429,6 +429,9 @@ function getToolUseHints(input: string): string | null {
   if (/\b(nutrition|calories|protein|carbs?|macro|vitamin|mineral|nutrient)\b/.test(lower)) {
     hints.push('🥗 Querying USDA nutrition data');
   }
+  if (/\b(blood\s*type|can\s+i\s+eat|should\s+i\s+eat|food.*(beneficial|avoid)|d'?adamo)\b/.test(lower)) {
+    hints.push('🩸 Checking blood type food compatibility');
+  }
 
   if (hints.length === 0) return null;
   return hints.join('\n') + '\n\n⏳ Gathering evidence...';
