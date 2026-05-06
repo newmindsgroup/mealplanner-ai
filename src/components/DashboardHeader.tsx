@@ -31,6 +31,7 @@ const TAB_LABELS: Record<TabType, string> = {
   'user-profile': 'My Profile',
   'fitness': 'Fitness & Training',
   'neuro-assessment': 'Brain Assessment',
+  'supplements': 'Supplement Schedule',
 };
 
 export default function DashboardHeader({ activeTab, onToggleSidebar }: DashboardHeaderProps) {

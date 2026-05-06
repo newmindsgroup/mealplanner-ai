@@ -108,12 +108,14 @@ if (!rootElement) {
       import('./App.tsx'),
       import('react-router-dom'),
       import('./contexts/AuthContext'),
-      import('./contexts/HouseholdContext')
+      import('./contexts/HouseholdContext'),
+      import('./contexts/SubscriptionContext')
     ]).then(([
       { default: App },
       { BrowserRouter },
       { AuthProvider },
-      { HouseholdProvider }
+      { HouseholdProvider },
+      { SubscriptionProvider }
     ]) => {
       console.log('✅ App component loaded, rendering...');
       
@@ -122,7 +124,9 @@ if (!rootElement) {
           <BrowserRouter>
             <AuthProvider>
               <HouseholdProvider>
-                <App />
+                <SubscriptionProvider>
+                  <App />
+                </SubscriptionProvider>
               </HouseholdProvider>
             </AuthProvider>
           </BrowserRouter>

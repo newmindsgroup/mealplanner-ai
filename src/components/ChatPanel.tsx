@@ -17,6 +17,8 @@ import { useVoiceReader } from '../hooks/useVoiceReader';
 import ChatMessageBubble from './chat/ChatMessageBubble';
 import ChatInputArea from './chat/ChatInputArea';
 import ChatSessionSidebar from './chat/ChatSessionSidebar';
+import SwarmAgentPanel from './chat/SwarmAgentPanel';
+import type { SwarmStep } from './chat/SwarmAgentPanel';
 import type { ChatAttachment, EnhancedChatMessage, ChatAction } from '../types/chat';
 import { detectIntent, extractStructuredData, commitExtraction } from '../services/chatDataRouter';
 import { getPageContext, buildContextualSystemPrompt } from '../services/smartAutofill';
@@ -42,6 +44,7 @@ export default function ChatPanel({ activeTab = 'home' }: ChatPanelProps) {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [retryingMessageId, setRetryingMessageId] = useState<string | null>(null);
   const [swarmStatus, setSwarmStatus] = useState<SwarmHealthStatus | null>(null);
+  const [swarmProgress, setSwarmProgress] = useState<{ active: boolean; taskType: string; agent: string; steps: SwarmStep[] } | null>(null);
 
   // Check swarm availability on mount
   useEffect(() => {
@@ -132,8 +135,26 @@ export default function ChatPanel({ activeTab = 'home' }: ChatPanelProps) {
 
       if (swarmRoute) {
         // Route to NourishAI multi-agent swarm
+        const agentForTask = swarmRoute.taskType.startsWith('lab') ? 'Dr. Analysis'
+          : swarmRoute.taskType.startsWith('neuro') ? 'NeuroGuide'
+          : swarmRoute.taskType.startsWith('fitness') || swarmRoute.taskType.startsWith('exercise') ? 'FitCoach'
+          : swarmRoute.taskType.startsWith('meal') ? 'NutriChef'
+          : swarmRoute.taskType.includes('report') || swarmRoute.taskType.includes('pdf') ? 'ReportGen'
+          : 'NourishAI';
+
+        setSwarmProgress({
+          active: true,
+          taskType: swarmRoute.taskType,
+          agent: agentForTask,
+          steps: [
+            { agent: agentForTask, status: 'running', label: 'Analyzing your request...' },
+            { agent: agentForTask, status: 'pending', label: 'Cross-referencing health data' },
+            { agent: 'ReportGen', status: 'pending', label: 'Formatting response' },
+          ],
+        });
+
         sessionStore.updateMessage(sessionId, loadingMessage.id, {
-          content: '🧠 Routing to NourishAI agents...\n' + (toolHints || ''),
+          content: `🧠 **${agentForTask}** is analyzing your request...\n` + (toolHints || ''),
         });
 
         try {
@@ -146,11 +167,13 @@ export default function ChatPanel({ activeTab = 'home' }: ChatPanelProps) {
         } catch (swarmErr) {
           // Fallback to standard chat if swarm fails
           console.warn('[Chat] Swarm failed, falling back to standard chat:', swarmErr);
+          setSwarmProgress(null);
           [response, extractedPayload] = await Promise.all([
             chatWithAssistant(enrichedInput, context),
             intent ? extractStructuredData(intent, userInput, attachments) : Promise.resolve(null),
           ]) as [string, any];
         }
+        setSwarmProgress(null);
       } else {
         // Standard AI chat
         [response, extractedPayload] = await Promise.all([
@@ -396,6 +419,18 @@ export default function ChatPanel({ activeTab = 'home' }: ChatPanelProps) {
             </>
           )}
         </div>
+
+        {/* Swarm Agent Progress */}
+        {swarmProgress?.active && (
+          <div className="px-3 pb-2">
+            <SwarmAgentPanel
+              taskType={swarmProgress.taskType}
+              steps={swarmProgress.steps}
+              currentAgent={swarmProgress.agent}
+              isComplete={false}
+            />
+          </div>
+        )}
 
         {/* Multi-format input area */}
         <ChatInputArea onSend={handleSend} />

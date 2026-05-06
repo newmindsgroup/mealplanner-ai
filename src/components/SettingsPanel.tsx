@@ -1,13 +1,22 @@
-import { Moon, Sun, Volume2, ChefHat, Globe, Trash2, Settings as SettingsIcon, Mail, Bell, Key } from 'lucide-react';
+import { Moon, Sun, Volume2, ChefHat, Globe, Trash2, Settings as SettingsIcon, Mail, Bell, Key, Crown, Zap, Users, Shield, Sparkles } from 'lucide-react';
 import { useStore } from '../store/useStore';
 import APIKeySettings from './APIKeySettings';
 import SMTPSettings from './SMTPSettings';
 import NotificationPreferences from './NotificationPreferences';
 import { useAssessmentStore } from '../store/assessmentStore';
+import { useSubscription, type SubscriptionTier } from '../contexts/SubscriptionContext';
 
 export default function SettingsPanel() {
   const { settings, updateSettings, progress } = useStore();
   const { isMonetizationEnabled, toggleMonetization } = useAssessmentStore();
+  const { tier, limits, setTier } = useSubscription();
+
+  const tierOptions: { value: SubscriptionTier; label: string; icon: typeof Sparkles; color: string }[] = [
+    { value: 'free', label: 'Free', icon: Sparkles, color: 'text-gray-500' },
+    { value: 'pro', label: 'Pro', icon: Zap, color: 'text-purple-500' },
+    { value: 'family', label: 'Family', icon: Users, color: 'text-emerald-500' },
+    { value: 'clinical', label: 'Clinical', icon: Shield, color: 'text-indigo-500' },
+  ];
 
   const handleClearData = () => {
     if (confirm('Are you sure you want to clear all data? This cannot be undone.')) {
@@ -195,6 +204,57 @@ export default function SettingsPanel() {
         {/* Notification Preferences */}
         <div className="card p-6">
           <NotificationPreferences />
+        </div>
+
+        {/* Subscription Plan */}
+        <div className="card p-6 border-2 border-purple-200 dark:border-purple-900/30">
+          <div className="flex items-center gap-3 mb-6">
+            <Crown className="w-6 h-6 text-purple-600 dark:text-purple-400" />
+            <div>
+              <h2 className="text-xl font-bold text-gray-900 dark:text-white">Subscription Plan</h2>
+              <p className="text-sm text-gray-500">Current: <span className="font-bold capitalize text-purple-600">{tier}</span></p>
+            </div>
+          </div>
+
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-2 mb-4">
+            {tierOptions.map(opt => {
+              const TierIcon = opt.icon;
+              const isActive = tier === opt.value;
+              return (
+                <button
+                  key={opt.value}
+                  onClick={() => setTier(opt.value)}
+                  className={`flex items-center gap-2 px-3 py-2.5 rounded-xl text-sm font-semibold transition-all ${
+                    isActive
+                      ? 'bg-purple-100 dark:bg-purple-900/30 text-purple-700 dark:text-purple-300 ring-2 ring-purple-400'
+                      : 'bg-gray-50 dark:bg-gray-800 text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700'
+                  }`}
+                >
+                  <TierIcon className={`w-4 h-4 ${isActive ? opt.color : ''}`} />
+                  {opt.label}
+                </button>
+              );
+            })}
+          </div>
+
+          <div className="grid grid-cols-2 gap-3 text-sm">
+            <div className="bg-gray-50 dark:bg-gray-800 rounded-lg p-3">
+              <p className="text-gray-400 text-xs">Meals/week</p>
+              <p className="font-bold text-gray-900 dark:text-white">{limits.mealsPerWeek === Infinity ? '∞' : limits.mealsPerWeek}</p>
+            </div>
+            <div className="bg-gray-50 dark:bg-gray-800 rounded-lg p-3">
+              <p className="text-gray-400 text-xs">Chat/day</p>
+              <p className="font-bold text-gray-900 dark:text-white">{limits.chatMessagesPerDay === Infinity ? '∞' : limits.chatMessagesPerDay}</p>
+            </div>
+            <div className="bg-gray-50 dark:bg-gray-800 rounded-lg p-3">
+              <p className="text-gray-400 text-xs">PDFs/month</p>
+              <p className="font-bold text-gray-900 dark:text-white">{limits.pdfReportsPerMonth === Infinity ? '∞' : limits.pdfReportsPerMonth}</p>
+            </div>
+            <div className="bg-gray-50 dark:bg-gray-800 rounded-lg p-3">
+              <p className="text-gray-400 text-xs">Family members</p>
+              <p className="font-bold text-gray-900 dark:text-white">{limits.familyMembers}</p>
+            </div>
+          </div>
         </div>
 
         {/* Super Admin / App Features */}

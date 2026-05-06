@@ -25,6 +25,7 @@ const LabsRouter = lazy(() => import('./labs/LabsRouter'));
 const FitnessDashboard = lazy(() => import('./fitness/FitnessDashboard'));
 const NeuroAssessment = lazy(() => import('./assessment/NeuroAssessment'));
 const CrossDomainHealthReport = lazy(() => import('./reports/CrossDomainHealthReport'));
+const SupplementScheduleView = lazy(() => import('./shared/SupplementScheduleView'));
 
 export type TabType =
   | 'home'
@@ -43,7 +44,8 @@ export type TabType =
   | 'user-profile'
   | 'fitness'
   | 'neuro-assessment'
-  | 'health-report';
+  | 'health-report'
+  | 'supplements';
 
 // Tab loading spinner
 function TabLoadingFallback() {
@@ -97,6 +99,8 @@ export default function Layout() {
         return <NeuroAssessment />;
       case 'health-report':
         return <CrossDomainHealthReport />;
+      case 'supplements':
+        return <SupplementScheduleView />;
       default:
         return <WeeklyPlanView />;
     }

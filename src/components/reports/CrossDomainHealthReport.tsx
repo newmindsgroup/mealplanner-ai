@@ -15,6 +15,7 @@ import {
 import { useStore } from '../../store/useStore';
 import { useAssessmentStore } from '../../store/assessmentStore';
 import SwarmAnalysisPanel from '../shared/SwarmAnalysisPanel';
+import { FeatureGuard } from '../shared/UpgradeGate';
 import { checkSwarmHealth, type SwarmHealthStatus } from '../../services/swarmService';
 
 interface CrossDomainSummary {
@@ -135,6 +136,7 @@ export default function CrossDomainHealthReport() {
   const swarmAvailable = swarmHealth?.status === 'healthy';
 
   return (
+    <FeatureGuard feature="health_reports">
     <div className="space-y-6 animate-fade-in">
       {/* Hero Header */}
       <div className="bg-gradient-to-br from-indigo-600 via-purple-600 to-pink-600 rounded-2xl p-6 text-white shadow-xl relative overflow-hidden">
@@ -329,5 +331,6 @@ export default function CrossDomainHealthReport() {
         </div>
       )}
     </div>
+    </FeatureGuard>
   );
 }
