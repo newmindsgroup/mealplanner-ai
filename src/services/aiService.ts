@@ -4,7 +4,18 @@
  * AI Service - Supports both OpenAI and Anthropic APIs with advanced error handling
  */
 
-export type AIProvider = 'openai' | 'anthropic';
+export type AIProvider = 'openai' | 'anthropic' | 'openrouter';
+
+/** Task types for intelligent model routing */
+export type AITaskType = 
+  | 'chat'           // General conversation → gpt-4o
+  | 'meal_plan'      // Meal plan generation → Gemma 3
+  | 'label_analysis' // Food label parsing → gpt-4o
+  | 'fitness_coach'  // Fitness advice → Llama 4
+  | 'quick_tip'      // Fast nutrition tips → Mistral Small
+  | 'nutrition_qa'   // Health Q&A → Gemma 3
+  | 'grocery'        // Grocery lists → Mistral Small
+  | 'recipe';        // Recipe generation → Gemma 3
 
 export enum AIErrorType {
   QUOTA_EXCEEDED = 'QUOTA_EXCEEDED',
@@ -38,6 +49,7 @@ interface ChatCompletionOptions {
   maxTokens?: number;
   model?: string;
   skipRetry?: boolean;
+  taskType?: AITaskType;
 }
 
 class AIService {
@@ -426,6 +438,7 @@ class AIService {
         messages,
         model: options.model,
         provider: this.provider,
+        taskType: options.taskType || 'chat',
       }),
     });
 

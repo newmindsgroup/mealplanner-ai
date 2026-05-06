@@ -2,7 +2,7 @@
  * Vercel Serverless Function — API Health Check
  * 
  * GET /api/health
- * Returns server status and available AI providers
+ * Returns server status, available AI providers, and model registry
  */
 
 export const config = {
@@ -10,8 +10,27 @@ export const config = {
 };
 
 export default async function handler(req) {
-  const hasOpenAI = !!process.env.OPENAI_API_KEY;
-  const hasAnthropic = !!process.env.ANTHROPIC_API_KEY;
+  const providers = {
+    openai: !!process.env.OPENAI_API_KEY,
+    anthropic: !!process.env.ANTHROPIC_API_KEY,
+    openrouter: !!process.env.OPENROUTER_API_KEY,
+  };
+
+  const available = Object.values(providers).some(Boolean);
+
+  // Models available based on configured providers
+  const models = [];
+  if (providers.openai) models.push('gpt-4o', 'gpt-4o-mini');
+  if (providers.anthropic) models.push('claude-3.5-sonnet');
+  if (providers.openrouter) {
+    models.push(
+      'gemma-3-27b',       // Google Gemma 3
+      'llama-4-scout',     // Meta Llama 4
+      'mistral-small',     // Mistral AI
+      'gemini-2.5-flash',  // Google Gemini
+      'deepseek-v3',       // DeepSeek
+    );
+  }
 
   return new Response(
     JSON.stringify({
@@ -19,9 +38,10 @@ export default async function handler(req) {
       message: 'Meal Plan Assistant API is running',
       timestamp: new Date().toISOString(),
       ai: {
-        openai: hasOpenAI,
-        anthropic: hasAnthropic,
-        available: hasOpenAI || hasAnthropic,
+        ...providers,
+        available,
+        modelCount: models.length,
+        models,
       },
     }),
     {

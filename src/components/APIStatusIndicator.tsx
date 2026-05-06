@@ -7,6 +7,7 @@ export default function APIStatusIndicator() {
   const { settings } = useStore();
   const [isConfigured, setIsConfigured] = useState(false);
   const [isProxy, setIsProxy] = useState(false);
+  const [modelCount, setModelCount] = useState(0);
   const [showTooltip, setShowTooltip] = useState(false);
 
   useEffect(() => {
@@ -39,6 +40,7 @@ export default function APIStatusIndicator() {
             if (data.success && data.ai?.available) {
               setIsConfigured(true);
               setIsProxy(true);
+              setModelCount(data.ai.modelCount || 0);
             }
           })
           .catch(() => { /* Proxy not available */ });
@@ -80,8 +82,8 @@ export default function APIStatusIndicator() {
         bgColor: 'bg-emerald-50 dark:bg-emerald-900/20',
         borderColor: 'border-emerald-200 dark:border-emerald-800',
         icon: CheckCircle2,
-        text: 'AI Ready',
-        description: 'Connected to Nourish AI via secure cloud proxy',
+        text: modelCount > 1 ? `${modelCount} Models` : 'AI Ready',
+        description: 'Multi-model AI — auto-selects the best model for each task',
       };
     }
 

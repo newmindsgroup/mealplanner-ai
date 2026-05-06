@@ -1,4 +1,4 @@
-import { getAIService, AIError, AIErrorType } from './aiService';
+import { getAIService, AIError, AIErrorType, type AITaskType } from './aiService';
 import { chatWithKnowledgeBase, getKnowledgeContext } from './knowledgeBaseService';
 import type { Person, WeeklyPlan, KnowledgeBaseFile } from '../types';
 
@@ -265,12 +265,15 @@ export async function chatWithAssistant(
   ];
 
   try {
+    // Detect the optimal task type based on message content
+    const taskType = detectTaskType(userMessage);
+
     // Use enhanced knowledge base chat if knowledge base is available
     let response: string;
     if (context?.knowledgeBase && context.knowledgeBase.length > 0) {
       response = await chatWithKnowledgeBase(userMessage, context.knowledgeBase, contextInfo);
     } else {
-      response = await aiService.chat(messages);
+      response = await aiService.chat(messages, { taskType });
     }
 
     // Save to conversation history (without system context injection)
@@ -305,4 +308,50 @@ I encountered an unexpected error: ${error instanceof Error ? error.message : 'U
 
 If the problem persists, please check the browser console for more details.`;
   }
+}
+
+// ─── Intelligent Task Detection ────────────────────────────────────────────────
+// Analyzes the user's message to route to the optimal model.
+// This keeps model selection invisible to the user while maximizing quality.
+
+function detectTaskType(message: string): AITaskType {
+  const lower = message.toLowerCase();
+
+  // Meal planning keywords → Gemma 3 (structured output, safety-aligned)
+  if (/\b(meal plan|weekly plan|plan my week|meal prep|batch cook|menu for|plan for the week|breakfast lunch dinner)\b/.test(lower)) {
+    return 'meal_plan';
+  }
+
+  // Recipe keywords → Gemma 3
+  if (/\b(recipe|cook|how to make|ingredients for|prepare|bake|sauté|grill|slow cook)\b/.test(lower)) {
+    return 'recipe';
+  }
+
+  // Fitness & workout keywords → Llama 4 (complex reasoning, long context)
+  if (/\b(workout|exercise|fitness|training|muscle|cardio|strength|reps|sets|gym|body composition|protein timing|pre.?workout|post.?workout|recovery)\b/.test(lower)) {
+    return 'fitness_coach';
+  }
+
+  // Label analysis keywords → GPT-4o (best at parsing)
+  if (/\b(label|ingredient|additive|preservative|scan|analyze|read this|food label|nutrition facts|what's in)\b/.test(lower)) {
+    return 'label_analysis';
+  }
+
+  // Grocery keywords → Mistral Small (fast, efficient)
+  if (/\b(grocery|shopping list|buy|store|supermarket|what to buy|pantry|stock up)\b/.test(lower)) {
+    return 'grocery';
+  }
+
+  // Quick tips (short questions) → Mistral Small (fastest)
+  if (lower.length < 50 && /\b(tip|quick|best|worst|good|bad|should i|can i|is it ok)\b/.test(lower)) {
+    return 'quick_tip';
+  }
+
+  // Nutrition/health Q&A → Gemma 3 (safety-aligned, health-focused)
+  if (/\b(blood type|nutrition|vitamin|mineral|supplement|deficiency|inflammation|gut health|immune|antioxidant|diet|calorie|macro|carb|fat|protein|fiber|omega)\b/.test(lower)) {
+    return 'nutrition_qa';
+  }
+
+  // Default: general chat → GPT-4o
+  return 'chat';
 }
