@@ -1,4 +1,3 @@
-import React from 'react';
 import { 
   Calendar, 
   ShoppingCart, 
@@ -11,16 +10,48 @@ import {
   Bell,
   Sparkles,
   Mic,
-  FileText
+  FileText,
+  Activity,
+  Brain,
+  Dumbbell,
+  Shield
 } from 'lucide-react';
 
 export default function FeatureGrid() {
   const features = [
     {
+      icon: Activity,
+      title: 'Lab Analysis',
+      description: 'Upload lab reports for AI-powered biomarker analysis with PubMed citations and trend charts',
+      color: 'from-rose-500 to-red-600',
+      href: '#demo'
+    },
+    {
+      icon: Brain,
+      title: 'Brain Assessment',
+      description: 'Braverman neurotransmitter profiling with research-backed recovery protocols',
+      color: 'from-purple-500 to-violet-600',
+      href: '#demo'
+    },
+    {
       icon: Calendar,
       title: 'AI Meal Planning',
-      description: 'Get personalized 7-day meal plans tailored to your blood type, preferences, and goals',
+      description: 'USDA-verified 7-day meal plans tailored to your blood type, preferences, and goals',
       color: 'from-emerald-400 to-green-500',
+      href: '#demo'
+    },
+    {
+      icon: Dumbbell,
+      title: 'Fitness Intelligence',
+      description: 'AI workout plans with plateau detection, exercise form guides, and progress reports',
+      color: 'from-orange-500 to-amber-600',
+      href: '#demo'
+    },
+    {
+      icon: Shield,
+      title: 'Health Reports',
+      description: 'Cross-domain intelligence reports, doctor visit prep packages, and family comparisons',
+      color: 'from-indigo-500 to-blue-600',
       href: '#demo'
     },
     {
@@ -40,7 +71,7 @@ export default function FeatureGrid() {
     {
       icon: MessageCircle,
       title: 'AI Nutrition Coach',
-      description: 'Chat with your personal AI assistant for instant nutrition advice',
+      description: 'Chat with 8 specialized AI agents for instant, evidence-based health advice',
       color: 'from-cyan-400 to-blue-500',
       href: '#demo'
     },
@@ -59,17 +90,17 @@ export default function FeatureGrid() {
       href: '#demo'
     },
     {
+      icon: Users,
+      title: 'Family Profiles',
+      description: 'Independent health tracking for every family member with comparison reports',
+      color: 'from-blue-400 to-cyan-500',
+      href: '#demo'
+    },
+    {
       icon: TrendingUp,
       title: 'Progress Tracking',
       description: 'Monitor your health journey with levels, streaks, and achievements',
       color: 'from-orange-400 to-red-500',
-      href: '#demo'
-    },
-    {
-      icon: Users,
-      title: 'Family Profiles',
-      description: 'Create plans for the whole family with individual blood type tracking',
-      color: 'from-blue-400 to-cyan-500',
       href: '#demo'
     },
     {

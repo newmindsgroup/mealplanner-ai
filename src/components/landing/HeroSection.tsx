@@ -12,9 +12,9 @@ interface HeroSectionProps {
 export default function HeroSection({ isAuthenticated, onGetStarted, onEnterApp, onLogout }: HeroSectionProps) {
   const features = [
     { icon: Calendar, text: 'AI-Powered Meal Planning', color: 'text-emerald-300' },
-    { icon: Heart, text: 'Blood Type Compatible', color: 'text-pink-300' },
-    { icon: Brain, text: 'Smart Nutrition Guidance', color: 'text-purple-300' },
-    { icon: Users, text: 'Family-Friendly Plans', color: 'text-cyan-300' },
+    { icon: Heart, text: 'Blood Type Intelligence', color: 'text-pink-300' },
+    { icon: Brain, text: 'Neuro-Nutritional Analysis', color: 'text-purple-300' },
+    { icon: Zap, text: '8 Specialized Health Agents', color: 'text-yellow-300' },
   ];
 
   return (
@@ -82,20 +82,20 @@ export default function HeroSection({ isAuthenticated, onGetStarted, onEnterApp,
         {/* Badge */}
         <div className="inline-flex items-center gap-2 glass-card px-6 py-3 rounded-full mb-8 fade-in-down">
           <Sparkles className="w-5 h-5 text-yellow-300" />
-          <span className="text-white font-semibold">Personalized Nutrition Planning</span>
+          <span className="text-white font-semibold">Multi-Agent Health Intelligence Platform</span>
         </div>
 
         {/* Main Headline */}
         <h1 className="landing-title text-white mb-6 fade-in-up">
-          Transform Your <span className="gradient-text">Health Journey</span>
+          Your Health, Decoded by <span className="gradient-text">NourishAI</span>
           <br />
-          With Intelligent Meal Planning
+          8 Agents. One Platform.
         </h1>
 
         {/* Subtitle */}
         <p className="landing-subtitle text-white/90 max-w-3xl mx-auto mb-8 fade-in-up delay-100">
-          Discover meals perfectly matched to your blood type, dietary preferences, and health goals. 
-          Plan smarter, eat better, and thrive with AI-powered nutrition guidance.
+          Lab analysis. Neurotransmitter profiling. USDA-verified meal planning. Fitness intelligence.
+          All powered by a multi-agent AI swarm that cross-references your data for truly personalized health guidance.
         </p>
 
         {/* Feature Pills */}
@@ -161,26 +161,26 @@ export default function HeroSection({ isAuthenticated, onGetStarted, onEnterApp,
               <div className="w-full h-32 bg-gradient-to-br from-emerald-400 to-cyan-500 rounded-xl mb-4 flex items-center justify-center">
                 <Calendar className="w-12 h-12 text-white" />
               </div>
-              <h3 className="font-bold text-gray-800 mb-2">Weekly Plans</h3>
-              <p className="text-sm text-gray-600">7-day personalized meal schedules</p>
+              <h3 className="font-bold text-gray-800 mb-2">Smart Meal Plans</h3>
+              <p className="text-sm text-gray-600">USDA-verified weekly nutrition</p>
             </div>
 
-            {/* Blood Type Card Preview */}
+            {/* Neuro Intelligence Preview */}
             <div className="glass-card-light rounded-2xl p-6 hover-lift float-animation-slow" style={{ animationDelay: '0.5s' }}>
-              <div className="w-full h-32 bg-gradient-to-br from-pink-400 to-purple-500 rounded-xl mb-4 flex items-center justify-center">
-                <Heart className="w-12 h-12 text-white" />
-              </div>
-              <h3 className="font-bold text-gray-800 mb-2">Blood Type Match</h3>
-              <p className="text-sm text-gray-600">Compatible nutrition science</p>
-            </div>
-
-            {/* AI Assistant Card Preview */}
-            <div className="glass-card-light rounded-2xl p-6 hover-lift float-animation" style={{ animationDelay: '1s' }}>
-              <div className="w-full h-32 bg-gradient-to-br from-purple-400 to-pink-500 rounded-xl mb-4 flex items-center justify-center">
+              <div className="w-full h-32 bg-gradient-to-br from-purple-400 to-violet-500 rounded-xl mb-4 flex items-center justify-center">
                 <Brain className="w-12 h-12 text-white" />
               </div>
-              <h3 className="font-bold text-gray-800 mb-2">AI Assistant</h3>
-              <p className="text-sm text-gray-600">Chat with your nutrition coach</p>
+              <h3 className="font-bold text-gray-800 mb-2">Neuro Intelligence</h3>
+              <p className="text-sm text-gray-600">Braverman neurotransmitter analysis</p>
+            </div>
+
+            {/* Multi-Agent Preview */}
+            <div className="glass-card-light rounded-2xl p-6 hover-lift float-animation" style={{ animationDelay: '1s' }}>
+              <div className="w-full h-32 bg-gradient-to-br from-indigo-400 to-blue-500 rounded-xl mb-4 flex items-center justify-center">
+                <Zap className="w-12 h-12 text-white" />
+              </div>
+              <h3 className="font-bold text-gray-800 mb-2">8 AI Agents</h3>
+              <p className="text-sm text-gray-600">Deep research & report generation</p>
             </div>
           </div>
         </div>

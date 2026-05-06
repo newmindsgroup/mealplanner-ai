@@ -10,6 +10,7 @@ import DemoChatAssistant from './landing/DemoChatAssistant';
 import DemoPantry from './landing/DemoPantry';
 import DemoGroceryList from './landing/DemoGroceryList';
 import DemoFoodGuide from './landing/DemoFoodGuide';
+import AIIntelligenceShowcase from './landing/AIIntelligenceShowcase';
 import BenefitsSection from './landing/BenefitsSection';
 import '../styles/landing.css';
 
@@ -88,6 +89,9 @@ export default function LandingPage() {
         {/* Feature Grid */}
         <FeatureGrid />
 
+        {/* NourishAI Intelligence Showcase */}
+        <AIIntelligenceShowcase />
+
         {/* Interactive Demos */}
         <DemoMealPlanner />
         <DemoLabelAnalyzer />
@@ -106,11 +110,11 @@ export default function LandingPage() {
               {/* Brand */}
               <div className="md:col-span-2">
                 <h3 className="text-2xl font-bold mb-4 gradient-text">
-                  Meal Plan Assistant
+                  NourishAI — Meal Plan Assistant
                 </h3>
                 <p className="text-gray-400 mb-4">
-                  Personalized nutrition planning with blood type compatibility, AI-powered meal suggestions, 
-                  and smart grocery management.
+                  AI-powered health intelligence platform with multi-agent analysis across labs,
+                  neurotransmitters, fitness, and nutrition. USDA-verified meal planning with blood type optimization.
                 </p>
                 <div className="flex gap-4">
                   <a href="#" className="text-gray-400 hover:text-white transition-colors">
@@ -156,7 +160,7 @@ export default function LandingPage() {
 
             {/* Bottom Bar */}
             <div className="pt-8 border-t border-gray-700 text-center text-gray-400">
-              <p>&copy; {new Date().getFullYear()} Meal Plan Assistant. All rights reserved.</p>
+              <p>&copy; {new Date().getFullYear()} NourishAI — Meal Plan Assistant. Powered by multi-agent intelligence.</p>
             </div>
           </div>
         </footer>
