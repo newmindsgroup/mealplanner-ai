@@ -1,7 +1,9 @@
 // Enhanced Blood Type Food Guide - Main Component
 import { useState, useMemo, useEffect } from 'react';
-import { Search, Download, FileText, Plus, Sparkles, Apple as AppleIcon, Utensils, Coffee, Sun, Moon, Clock } from 'lucide-react';
+import { Search, Download, FileText, Plus, Sparkles, Apple as AppleIcon, Utensils, Coffee, Sun, Moon, Clock, ChevronDown, ChevronUp } from 'lucide-react';
 import { useStore } from '../store/useStore';
+import SwarmAnalysisPanel from './shared/SwarmAnalysisPanel';
+import { checkSwarmHealth, type SwarmHealthStatus } from '../services/swarmService';
 import { 
   bloodTypeFoodDatabase, 
   getFoodsByBloodType,
@@ -43,6 +45,12 @@ export default function BloodTypeFoodGuide() {
   const [showAddFoodModal, setShowAddFoodModal] = useState(false);
   const [showAISuggestion, setShowAISuggestion] = useState(false);
   const [showAvoidGuide, setShowAvoidGuide] = useState(false);
+  const [swarmHealth, setSwarmHealth] = useState<SwarmHealthStatus | null>(null);
+  const [showSwarmPanel, setShowSwarmPanel] = useState(false);
+
+  useEffect(() => {
+    checkSwarmHealth().then(setSwarmHealth).catch(() => {});
+  }, []);
 
   // Get custom foods for selected person
   const userGuide = selectedPerson ? userFoodGuides.find(g => g.userId === selectedPerson.id) : null;
@@ -235,6 +243,46 @@ export default function BloodTypeFoodGuide() {
             <p className="text-3xl font-bold text-red-600 dark:text-red-400">{stats.avoid}</p>
             <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">Foods to minimize or eliminate</p>
           </div>
+        </div>
+      )}
+
+      {/* NourishAI Food Intelligence */}
+      {swarmHealth?.status === 'healthy' && selectedPerson && (
+        <div className="bg-white dark:bg-gray-800 rounded-xl border border-gray-100 dark:border-gray-700 overflow-hidden shadow-sm">
+          <button
+            onClick={() => setShowSwarmPanel(!showSwarmPanel)}
+            className="w-full flex items-center justify-between p-4 hover:bg-gray-50 dark:hover:bg-gray-750 transition-colors"
+          >
+            <div className="flex items-center gap-3">
+              <div className="p-2 bg-gradient-to-r from-green-500 to-emerald-500 rounded-xl">
+                <Sparkles className="w-5 h-5 text-white" />
+              </div>
+              <div className="text-left">
+                <h3 className="font-bold text-gray-900 dark:text-white">NourishAI Food Intelligence</h3>
+                <p className="text-xs text-gray-500">Deep research on foods, blood type interactions, and USDA nutrition</p>
+              </div>
+            </div>
+            {showSwarmPanel ? <ChevronUp className="w-5 h-5 text-gray-400" /> : <ChevronDown className="w-5 h-5 text-gray-400" />}
+          </button>
+          {showSwarmPanel && (
+            <div className="px-4 pb-4 space-y-4 border-t border-gray-100 dark:border-gray-700 pt-4">
+              <SwarmAnalysisPanel
+                taskType="meal_plan_verified"
+                context={{
+                  personName: selectedPerson.name,
+                  bloodType: selectedPerson.bloodType,
+                  allergies: selectedPerson.allergies,
+                  stats,
+                  searchQuery: searchQuery || undefined,
+                }}
+                title="Blood Type Food Research"
+                description="Cross-reference D'Adamo methodology with PubMed, lectin studies, and USDA FoodData Central."
+                buttonLabel="Research Foods"
+                accentColor="green"
+                gradientClasses="from-green-50 to-emerald-50 dark:from-green-950/20 dark:to-emerald-950/20"
+              />
+            </div>
+          )}
         </div>
       )}
 

@@ -1,5 +1,5 @@
-import { useState, useMemo } from 'react';
-import { Search, Heart, Download, Printer, Calendar as CalendarIcon, Clock, Volume2, Sparkles, Filter, TrendingUp, Award, Flame } from 'lucide-react';
+import { useState, useMemo, useEffect } from 'react';
+import { Search, Heart, Download, Printer, Calendar as CalendarIcon, Clock, Volume2, Sparkles, Filter, TrendingUp, Award, Flame, ChevronDown, ChevronUp } from 'lucide-react';
 import { useStore } from '../store/useStore';
 import { format, startOfWeek, addDays } from 'date-fns';
 import MealCard from './MealCard';
@@ -9,6 +9,8 @@ import LoadingSpinner from './LoadingSpinner';
 import { WeeklyPlanSkeleton } from './SkeletonLoader';
 import { FoodBenefitIcon } from './food-guide/FoodBenefitBadge';
 import WorkoutDayCard from './fitness/WorkoutDayCard';
+import SwarmAnalysisPanel from './shared/SwarmAnalysisPanel';
+import { checkSwarmHealth, type SwarmHealthStatus } from '../services/swarmService';
 import type { HealthBenefit } from '../types';
 
 export default function WeeklyPlanView({ onNavigateToFitness }: { onNavigateToFitness?: () => void } = {}) {
@@ -16,6 +18,12 @@ export default function WeeklyPlanView({ onNavigateToFitness }: { onNavigateToFi
   const [searchQuery, setSearchQuery] = useState('');
   const [filterCuisine, setFilterCuisine] = useState<string>('');
   const [isGenerating, setIsGenerating] = useState(false);
+  const [swarmHealth, setSwarmHealth] = useState<SwarmHealthStatus | null>(null);
+  const [showSwarmPanels, setShowSwarmPanels] = useState(false);
+
+  useEffect(() => {
+    checkSwarmHealth().then(setSwarmHealth).catch(() => {});
+  }, []);
 
   const weekStart = currentPlan
     ? new Date(currentPlan.weekStart)
@@ -260,6 +268,84 @@ export default function WeeklyPlanView({ onNavigateToFitness }: { onNavigateToFi
               </div>
             </div>
           </div>
+        </div>
+      )}
+
+      {/* NourishAI Meal Intelligence */}
+      {swarmHealth?.status === 'healthy' && currentPlan && (
+        <div className="bg-white dark:bg-gray-800 rounded-xl border border-gray-100 dark:border-gray-700 overflow-hidden shadow-sm">
+          <button
+            onClick={() => setShowSwarmPanels(!showSwarmPanels)}
+            className="w-full flex items-center justify-between p-4 hover:bg-gray-50 dark:hover:bg-gray-750 transition-colors"
+          >
+            <div className="flex items-center gap-3">
+              <div className="p-2 bg-gradient-to-r from-emerald-500 to-teal-500 rounded-xl">
+                <Sparkles className="w-5 h-5 text-white" />
+              </div>
+              <div className="text-left">
+                <h3 className="font-bold text-gray-900 dark:text-white">NourishAI Meal Intelligence</h3>
+                <p className="text-xs text-gray-500">USDA-verified nutrition, blood type optimization, exportable PDF</p>
+              </div>
+            </div>
+            {showSwarmPanels ? <ChevronUp className="w-5 h-5 text-gray-400" /> : <ChevronDown className="w-5 h-5 text-gray-400" />}
+          </button>
+          {showSwarmPanels && (
+            <div className="px-4 pb-4 space-y-4 border-t border-gray-100 dark:border-gray-700 pt-4">
+              <SwarmAnalysisPanel
+                taskType="meal_plan_verified"
+                context={{
+                  people: people.map(p => ({
+                    name: p.name,
+                    bloodType: p.bloodType,
+                    age: p.age,
+                    allergies: p.allergies,
+                    dietaryCodes: p.dietaryCodes,
+                    goals: p.goals,
+                  })),
+                  currentPlan: {
+                    weekStart: currentPlan.weekStart,
+                    totalMeals: weeklyStats?.totalMeals,
+                    avgCaloriesPerDay: weeklyStats?.avgCaloriesPerDay,
+                    days: currentPlan.days.map(d => ({
+                      date: d.date,
+                      breakfast: { name: d.breakfast.name, calories: d.breakfast.nutritionalInfo?.calories },
+                      lunch: { name: d.lunch.name, calories: d.lunch.nutritionalInfo?.calories },
+                      dinner: { name: d.dinner.name, calories: d.dinner.nutritionalInfo?.calories },
+                      snack: { name: d.snack.name, calories: d.snack.nutritionalInfo?.calories },
+                    })),
+                  },
+                  bloodTypes: [...new Set(people.map(p => p.bloodType))],
+                }}
+                title="USDA Nutrition Verification"
+                description="Cross-reference every meal against USDA FoodData Central for accurate macro/micronutrient content."
+                buttonLabel="Verify Nutrition Data"
+                accentColor="green"
+                gradientClasses="from-green-50 to-emerald-50 dark:from-green-950/20 dark:to-emerald-950/20"
+              />
+
+              <SwarmAnalysisPanel
+                taskType="meal_plan_pdf"
+                context={{
+                  people: people.map(p => ({ name: p.name, bloodType: p.bloodType })),
+                  currentPlan: {
+                    weekStart: currentPlan.weekStart,
+                    days: currentPlan.days.map(d => ({
+                      date: d.date,
+                      breakfast: { name: d.breakfast.name, ingredients: d.breakfast.ingredients },
+                      lunch: { name: d.lunch.name, ingredients: d.lunch.ingredients },
+                      dinner: { name: d.dinner.name, ingredients: d.dinner.ingredients },
+                      snack: { name: d.snack.name, ingredients: d.snack.ingredients },
+                    })),
+                  },
+                }}
+                title="Export Meal Plan PDF"
+                description="Print-ready PDF with daily meals, recipes, nutrition breakdown, and grocery shopping list."
+                buttonLabel="Generate PDF"
+                accentColor="blue"
+                gradientClasses="from-blue-50 to-cyan-50 dark:from-blue-950/20 dark:to-cyan-950/20"
+              />
+            </div>
+          )}
         </div>
       )}
 
