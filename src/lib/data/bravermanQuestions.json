@@ -1,0 +1,846 @@
+{
+  "title": "Braverman Nature Assessment",
+  "description": "Identify your dominant brain chemistry and potential neurotransmitter imbalances.",
+  "questions": [
+    {
+      "id": "q_1",
+      "section": "nature",
+      "category": "dopamine",
+      "text": "I have a very active imagination and often have new ideas.",
+      "type": "boolean"
+    },
+    {
+      "id": "q_2",
+      "section": "nature",
+      "category": "dopamine",
+      "text": "I am a very driven person.",
+      "type": "boolean"
+    },
+    {
+      "id": "q_3",
+      "section": "nature",
+      "category": "dopamine",
+      "text": "I find it easy to focus on details.",
+      "type": "boolean"
+    },
+    {
+      "id": "q_4",
+      "section": "nature",
+      "category": "dopamine",
+      "text": "I am very good at strategizing and planning.",
+      "type": "boolean"
+    },
+    {
+      "id": "q_5",
+      "section": "nature",
+      "category": "dopamine",
+      "text": "I consider myself highly competitive.",
+      "type": "boolean"
+    },
+    {
+      "id": "q_6",
+      "section": "nature",
+      "category": "dopamine",
+      "text": "I easily learn new skills and concepts.",
+      "type": "boolean"
+    },
+    {
+      "id": "q_7",
+      "section": "nature",
+      "category": "dopamine",
+      "text": "I am known for being a problem solver.",
+      "type": "boolean"
+    },
+    {
+      "id": "q_8",
+      "section": "nature",
+      "category": "dopamine",
+      "text": "I often feel highly energetic and rarely get fatigued during the day.",
+      "type": "boolean"
+    },
+    {
+      "id": "q_9",
+      "section": "nature",
+      "category": "dopamine",
+      "text": "I enjoy taking risks and seeking thrills.",
+      "type": "boolean"
+    },
+    {
+      "id": "q_10",
+      "section": "nature",
+      "category": "dopamine",
+      "text": "I am very self-confident and self-reliant.",
+      "type": "boolean"
+    },
+    {
+      "id": "q_11",
+      "section": "nature",
+      "category": "dopamine",
+      "text": "I find it easy to stick to a schedule or routine.",
+      "type": "boolean"
+    },
+    {
+      "id": "q_12",
+      "section": "nature",
+      "category": "dopamine",
+      "text": "I have a high sex drive.",
+      "type": "boolean"
+    },
+    {
+      "id": "q_13",
+      "section": "nature",
+      "category": "dopamine",
+      "text": "I am very protective of my family and loved ones.",
+      "type": "boolean"
+    },
+    {
+      "id": "q_14",
+      "section": "nature",
+      "category": "dopamine",
+      "text": "I am highly organized and detail-oriented.",
+      "type": "boolean"
+    },
+    {
+      "id": "q_15",
+      "section": "nature",
+      "category": "dopamine",
+      "text": "I enjoy being in positions of leadership or authority.",
+      "type": "boolean"
+    },
+    {
+      "id": "q_16",
+      "section": "nature",
+      "category": "acetylcholine",
+      "text": "I have a highly creative mind.",
+      "type": "boolean"
+    },
+    {
+      "id": "q_17",
+      "section": "nature",
+      "category": "acetylcholine",
+      "text": "I have an excellent memory, both short-term and long-term.",
+      "type": "boolean"
+    },
+    {
+      "id": "q_18",
+      "section": "nature",
+      "category": "acetylcholine",
+      "text": "I am very good at recalling names and faces.",
+      "type": "boolean"
+    },
+    {
+      "id": "q_19",
+      "section": "nature",
+      "category": "acetylcholine",
+      "text": "I learn best by reading and absorbing information visually.",
+      "type": "boolean"
+    },
+    {
+      "id": "q_20",
+      "section": "nature",
+      "category": "acetylcholine",
+      "text": "I am very intuitive and often 'just know' things.",
+      "type": "boolean"
+    },
+    {
+      "id": "q_21",
+      "section": "nature",
+      "category": "acetylcholine",
+      "text": "I enjoy art, music, and cultural experiences.",
+      "type": "boolean"
+    },
+    {
+      "id": "q_22",
+      "section": "nature",
+      "category": "acetylcholine",
+      "text": "I am very empathetic and sensitive to others' emotions.",
+      "type": "boolean"
+    },
+    {
+      "id": "q_23",
+      "section": "nature",
+      "category": "acetylcholine",
+      "text": "I often think about the meaning of life and philosophical questions.",
+      "type": "boolean"
+    },
+    {
+      "id": "q_24",
+      "section": "nature",
+      "category": "acetylcholine",
+      "text": "I am a fast thinker and speak quickly.",
+      "type": "boolean"
+    },
+    {
+      "id": "q_25",
+      "section": "nature",
+      "category": "acetylcholine",
+      "text": "I am very observant of my surroundings.",
+      "type": "boolean"
+    },
+    {
+      "id": "q_26",
+      "section": "nature",
+      "category": "acetylcholine",
+      "text": "I enjoy working on puzzles or complex mental challenges.",
+      "type": "boolean"
+    },
+    {
+      "id": "q_27",
+      "section": "nature",
+      "category": "acetylcholine",
+      "text": "I am naturally optimistic and look at the bright side.",
+      "type": "boolean"
+    },
+    {
+      "id": "q_28",
+      "section": "nature",
+      "category": "acetylcholine",
+      "text": "I find it easy to focus on the big picture rather than details.",
+      "type": "boolean"
+    },
+    {
+      "id": "q_29",
+      "section": "nature",
+      "category": "acetylcholine",
+      "text": "I am very spontaneous and flexible.",
+      "type": "boolean"
+    },
+    {
+      "id": "q_30",
+      "section": "nature",
+      "category": "acetylcholine",
+      "text": "I am considered a very sociable and friendly person.",
+      "type": "boolean"
+    },
+    {
+      "id": "q_31",
+      "section": "nature",
+      "category": "gaba",
+      "text": "I am a very stable, calm, and practical person.",
+      "type": "boolean"
+    },
+    {
+      "id": "q_32",
+      "section": "nature",
+      "category": "gaba",
+      "text": "I rarely get angry or lose my temper.",
+      "type": "boolean"
+    },
+    {
+      "id": "q_33",
+      "section": "nature",
+      "category": "gaba",
+      "text": "I am excellent at managing stress.",
+      "type": "boolean"
+    },
+    {
+      "id": "q_34",
+      "section": "nature",
+      "category": "gaba",
+      "text": "I enjoy predictable routines and a structured life.",
+      "type": "boolean"
+    },
+    {
+      "id": "q_35",
+      "section": "nature",
+      "category": "gaba",
+      "text": "I am known for being very dependable and reliable.",
+      "type": "boolean"
+    },
+    {
+      "id": "q_36",
+      "section": "nature",
+      "category": "gaba",
+      "text": "I am a good listener and others often come to me for advice.",
+      "type": "boolean"
+    },
+    {
+      "id": "q_37",
+      "section": "nature",
+      "category": "gaba",
+      "text": "I have a calming effect on those around me.",
+      "type": "boolean"
+    },
+    {
+      "id": "q_38",
+      "section": "nature",
+      "category": "gaba",
+      "text": "I am very loyal to my friends and family.",
+      "type": "boolean"
+    },
+    {
+      "id": "q_39",
+      "section": "nature",
+      "category": "gaba",
+      "text": "I am traditional and value history and established institutions.",
+      "type": "boolean"
+    },
+    {
+      "id": "q_40",
+      "section": "nature",
+      "category": "gaba",
+      "text": "I am a team player and prefer collaboration over competition.",
+      "type": "boolean"
+    },
+    {
+      "id": "q_41",
+      "section": "nature",
+      "category": "gaba",
+      "text": "I am very patient and don't rush things.",
+      "type": "boolean"
+    },
+    {
+      "id": "q_42",
+      "section": "nature",
+      "category": "gaba",
+      "text": "I prefer completing one task fully before starting another.",
+      "type": "boolean"
+    },
+    {
+      "id": "q_43",
+      "section": "nature",
+      "category": "gaba",
+      "text": "I am usually happy with what I have and don't crave constant change.",
+      "type": "boolean"
+    },
+    {
+      "id": "q_44",
+      "section": "nature",
+      "category": "gaba",
+      "text": "I rarely feel anxious or overwhelmed.",
+      "type": "boolean"
+    },
+    {
+      "id": "q_45",
+      "section": "nature",
+      "category": "gaba",
+      "text": "I am very observant of social norms and rules.",
+      "type": "boolean"
+    },
+    {
+      "id": "q_46",
+      "section": "nature",
+      "category": "serotonin",
+      "text": "I know how to enjoy myself and have fun.",
+      "type": "boolean"
+    },
+    {
+      "id": "q_47",
+      "section": "nature",
+      "category": "serotonin",
+      "text": "I am generally in a very good mood.",
+      "type": "boolean"
+    },
+    {
+      "id": "q_48",
+      "section": "nature",
+      "category": "serotonin",
+      "text": "I am an easygoing person and don't sweat the small stuff.",
+      "type": "boolean"
+    },
+    {
+      "id": "q_49",
+      "section": "nature",
+      "category": "serotonin",
+      "text": "I enjoy living in the present moment.",
+      "type": "boolean"
+    },
+    {
+      "id": "q_50",
+      "section": "nature",
+      "category": "serotonin",
+      "text": "I love being physically active and enjoying the outdoors.",
+      "type": "boolean"
+    },
+    {
+      "id": "q_51",
+      "section": "nature",
+      "category": "serotonin",
+      "text": "I am a very hands-on, tactile person.",
+      "type": "boolean"
+    },
+    {
+      "id": "q_52",
+      "section": "nature",
+      "category": "serotonin",
+      "text": "I am known for being a loyal friend and partner.",
+      "type": "boolean"
+    },
+    {
+      "id": "q_53",
+      "section": "nature",
+      "category": "serotonin",
+      "text": "I am very open-minded to new experiences.",
+      "type": "boolean"
+    },
+    {
+      "id": "q_54",
+      "section": "nature",
+      "category": "serotonin",
+      "text": "I have a very deep, restful sleep every night.",
+      "type": "boolean"
+    },
+    {
+      "id": "q_55",
+      "section": "nature",
+      "category": "serotonin",
+      "text": "I enjoy a healthy relationship with food and eat a balanced diet.",
+      "type": "boolean"
+    },
+    {
+      "id": "q_56",
+      "section": "nature",
+      "category": "serotonin",
+      "text": "I am passionate and enjoy a fulfilling romantic life.",
+      "type": "boolean"
+    },
+    {
+      "id": "q_57",
+      "section": "nature",
+      "category": "serotonin",
+      "text": "I easily let go of grudges and don't hold onto anger.",
+      "type": "boolean"
+    },
+    {
+      "id": "q_58",
+      "section": "nature",
+      "category": "serotonin",
+      "text": "I am highly adaptable to changing circumstances.",
+      "type": "boolean"
+    },
+    {
+      "id": "q_59",
+      "section": "nature",
+      "category": "serotonin",
+      "text": "I enjoy socializing, parties, and large gatherings.",
+      "type": "boolean"
+    },
+    {
+      "id": "q_60",
+      "section": "nature",
+      "category": "serotonin",
+      "text": "I find it very easy to relax when I need to.",
+      "type": "boolean"
+    },
+    {
+      "id": "q_61",
+      "section": "deficiency",
+      "category": "dopamine",
+      "text": "I often feel tired, fatigued, or lack physical energy.",
+      "type": "boolean"
+    },
+    {
+      "id": "q_62",
+      "section": "deficiency",
+      "category": "dopamine",
+      "text": "I frequently procrastinate or lack motivation to start tasks.",
+      "type": "boolean"
+    },
+    {
+      "id": "q_63",
+      "section": "deficiency",
+      "category": "dopamine",
+      "text": "I have difficulty concentrating or focusing on one thing.",
+      "type": "boolean"
+    },
+    {
+      "id": "q_64",
+      "section": "deficiency",
+      "category": "dopamine",
+      "text": "I often feel apathetic or indifferent about things I used to enjoy.",
+      "type": "boolean"
+    },
+    {
+      "id": "q_65",
+      "section": "deficiency",
+      "category": "dopamine",
+      "text": "I sometimes feel helpless or hopeless.",
+      "type": "boolean"
+    },
+    {
+      "id": "q_66",
+      "section": "deficiency",
+      "category": "dopamine",
+      "text": "I have a tendency to isolate myself from others.",
+      "type": "boolean"
+    },
+    {
+      "id": "q_67",
+      "section": "deficiency",
+      "category": "dopamine",
+      "text": "I notice my sex drive has significantly decreased.",
+      "type": "boolean"
+    },
+    {
+      "id": "q_68",
+      "section": "deficiency",
+      "category": "dopamine",
+      "text": "I have difficulty making decisions or choices.",
+      "type": "boolean"
+    },
+    {
+      "id": "q_69",
+      "section": "deficiency",
+      "category": "dopamine",
+      "text": "I often crave caffeine, sugar, or other stimulants for energy.",
+      "type": "boolean"
+    },
+    {
+      "id": "q_70",
+      "section": "deficiency",
+      "category": "dopamine",
+      "text": "I feel a general lack of drive and ambition.",
+      "type": "boolean"
+    },
+    {
+      "id": "q_71",
+      "section": "deficiency",
+      "category": "dopamine",
+      "text": "I have a hard time finishing projects I start.",
+      "type": "boolean"
+    },
+    {
+      "id": "q_72",
+      "section": "deficiency",
+      "category": "dopamine",
+      "text": "I feel like my thoughts are slow or sluggish.",
+      "type": "boolean"
+    },
+    {
+      "id": "q_73",
+      "section": "deficiency",
+      "category": "dopamine",
+      "text": "I have noticed a decrease in my physical coordination or strength.",
+      "type": "boolean"
+    },
+    {
+      "id": "q_74",
+      "section": "deficiency",
+      "category": "dopamine",
+      "text": "I struggle with feelings of worthlessness or low self-esteem.",
+      "type": "boolean"
+    },
+    {
+      "id": "q_75",
+      "section": "deficiency",
+      "category": "dopamine",
+      "text": "I tend to gain weight easily, especially around my midsection.",
+      "type": "boolean"
+    },
+    {
+      "id": "q_76",
+      "section": "deficiency",
+      "category": "acetylcholine",
+      "text": "I frequently experience 'brain fog' or mental lack of clarity.",
+      "type": "boolean"
+    },
+    {
+      "id": "q_77",
+      "section": "deficiency",
+      "category": "acetylcholine",
+      "text": "I have noticed a decline in my short-term memory.",
+      "type": "boolean"
+    },
+    {
+      "id": "q_78",
+      "section": "deficiency",
+      "category": "acetylcholine",
+      "text": "I struggle to find the right words when speaking.",
+      "type": "boolean"
+    },
+    {
+      "id": "q_79",
+      "section": "deficiency",
+      "category": "acetylcholine",
+      "text": "I find it hard to learn new things or absorb new information.",
+      "type": "boolean"
+    },
+    {
+      "id": "q_80",
+      "section": "deficiency",
+      "category": "acetylcholine",
+      "text": "I feel like my creativity has significantly diminished.",
+      "type": "boolean"
+    },
+    {
+      "id": "q_81",
+      "section": "deficiency",
+      "category": "acetylcholine",
+      "text": "I often feel distracted or absent-minded.",
+      "type": "boolean"
+    },
+    {
+      "id": "q_82",
+      "section": "deficiency",
+      "category": "acetylcholine",
+      "text": "I have difficulty calculating numbers in my head.",
+      "type": "boolean"
+    },
+    {
+      "id": "q_83",
+      "section": "deficiency",
+      "category": "acetylcholine",
+      "text": "I notice my reaction times are slower than they used to be.",
+      "type": "boolean"
+    },
+    {
+      "id": "q_84",
+      "section": "deficiency",
+      "category": "acetylcholine",
+      "text": "I often misplace items like keys or my phone.",
+      "type": "boolean"
+    },
+    {
+      "id": "q_85",
+      "section": "deficiency",
+      "category": "acetylcholine",
+      "text": "I have a hard time following the plot of a complex movie or book.",
+      "type": "boolean"
+    },
+    {
+      "id": "q_86",
+      "section": "deficiency",
+      "category": "acetylcholine",
+      "text": "I feel less intuitive or 'out of touch' with my gut feelings.",
+      "type": "boolean"
+    },
+    {
+      "id": "q_87",
+      "section": "deficiency",
+      "category": "acetylcholine",
+      "text": "I crave fatty foods or high-cholesterol foods.",
+      "type": "boolean"
+    },
+    {
+      "id": "q_88",
+      "section": "deficiency",
+      "category": "acetylcholine",
+      "text": "I have a dry mouth or dry eyes frequently.",
+      "type": "boolean"
+    },
+    {
+      "id": "q_89",
+      "section": "deficiency",
+      "category": "acetylcholine",
+      "text": "I have noticed a decrease in muscle tone.",
+      "type": "boolean"
+    },
+    {
+      "id": "q_90",
+      "section": "deficiency",
+      "category": "acetylcholine",
+      "text": "I feel less emotionally expressive than I used to.",
+      "type": "boolean"
+    },
+    {
+      "id": "q_91",
+      "section": "deficiency",
+      "category": "gaba",
+      "text": "I often feel anxious, nervous, or on edge.",
+      "type": "boolean"
+    },
+    {
+      "id": "q_92",
+      "section": "deficiency",
+      "category": "gaba",
+      "text": "I easily become overwhelmed or stressed by daily tasks.",
+      "type": "boolean"
+    },
+    {
+      "id": "q_93",
+      "section": "deficiency",
+      "category": "gaba",
+      "text": "I have a hard time 'turning off' my mind to relax or sleep.",
+      "type": "boolean"
+    },
+    {
+      "id": "q_94",
+      "section": "deficiency",
+      "category": "gaba",
+      "text": "I frequently worry about things that might happen in the future.",
+      "type": "boolean"
+    },
+    {
+      "id": "q_95",
+      "section": "deficiency",
+      "category": "gaba",
+      "text": "I often feel restless or jittery.",
+      "type": "boolean"
+    },
+    {
+      "id": "q_96",
+      "section": "deficiency",
+      "category": "gaba",
+      "text": "I have a tendency to overthink or obsess over details.",
+      "type": "boolean"
+    },
+    {
+      "id": "q_97",
+      "section": "deficiency",
+      "category": "gaba",
+      "text": "I experience muscle tension or stiffness, especially in the neck and shoulders.",
+      "type": "boolean"
+    },
+    {
+      "id": "q_98",
+      "section": "deficiency",
+      "category": "gaba",
+      "text": "I often feel irritable or easily frustrated.",
+      "type": "boolean"
+    },
+    {
+      "id": "q_99",
+      "section": "deficiency",
+      "category": "gaba",
+      "text": "I have a fast or irregular heartbeat when stressed.",
+      "type": "boolean"
+    },
+    {
+      "id": "q_100",
+      "section": "deficiency",
+      "category": "gaba",
+      "text": "I struggle with feelings of panic or dread without an obvious cause.",
+      "type": "boolean"
+    },
+    {
+      "id": "q_101",
+      "section": "deficiency",
+      "category": "gaba",
+      "text": "I rely on alcohol, drugs, or food to calm down.",
+      "type": "boolean"
+    },
+    {
+      "id": "q_102",
+      "section": "deficiency",
+      "category": "gaba",
+      "text": "I have digestive issues or an 'upset stomach' when stressed.",
+      "type": "boolean"
+    },
+    {
+      "id": "q_103",
+      "section": "deficiency",
+      "category": "gaba",
+      "text": "I feel like I am constantly rushing or in a hurry.",
+      "type": "boolean"
+    },
+    {
+      "id": "q_104",
+      "section": "deficiency",
+      "category": "gaba",
+      "text": "I have a hard time maintaining a consistent daily routine.",
+      "type": "boolean"
+    },
+    {
+      "id": "q_105",
+      "section": "deficiency",
+      "category": "gaba",
+      "text": "I feel ungrounded or out of touch with reality sometimes.",
+      "type": "boolean"
+    },
+    {
+      "id": "q_106",
+      "section": "deficiency",
+      "category": "serotonin",
+      "text": "I frequently experience feelings of depression or deep sadness.",
+      "type": "boolean"
+    },
+    {
+      "id": "q_107",
+      "section": "deficiency",
+      "category": "serotonin",
+      "text": "I often feel moody, irritable, or emotionally unstable.",
+      "type": "boolean"
+    },
+    {
+      "id": "q_108",
+      "section": "deficiency",
+      "category": "serotonin",
+      "text": "I struggle with insomnia or wake up frequently during the night.",
+      "type": "boolean"
+    },
+    {
+      "id": "q_109",
+      "section": "deficiency",
+      "category": "serotonin",
+      "text": "I have strong cravings for carbohydrates, sweets, or salty foods.",
+      "type": "boolean"
+    },
+    {
+      "id": "q_110",
+      "section": "deficiency",
+      "category": "serotonin",
+      "text": "I tend to be highly sensitive to pain.",
+      "type": "boolean"
+    },
+    {
+      "id": "q_111",
+      "section": "deficiency",
+      "category": "serotonin",
+      "text": "I feel a lack of joy or pleasure in my life.",
+      "type": "boolean"
+    },
+    {
+      "id": "q_112",
+      "section": "deficiency",
+      "category": "serotonin",
+      "text": "I am often pessimistic or expect the worst.",
+      "type": "boolean"
+    },
+    {
+      "id": "q_113",
+      "section": "deficiency",
+      "category": "serotonin",
+      "text": "I have a short temper or anger easily.",
+      "type": "boolean"
+    },
+    {
+      "id": "q_114",
+      "section": "deficiency",
+      "category": "serotonin",
+      "text": "I struggle with obsessive or compulsive thoughts/behaviors.",
+      "type": "boolean"
+    },
+    {
+      "id": "q_115",
+      "section": "deficiency",
+      "category": "serotonin",
+      "text": "I experience frequent headaches or migraines.",
+      "type": "boolean"
+    },
+    {
+      "id": "q_116",
+      "section": "deficiency",
+      "category": "serotonin",
+      "text": "I feel insecure or have low self-confidence.",
+      "type": "boolean"
+    },
+    {
+      "id": "q_117",
+      "section": "deficiency",
+      "category": "serotonin",
+      "text": "I tend to hold grudges and have a hard time forgiving.",
+      "type": "boolean"
+    },
+    {
+      "id": "q_118",
+      "section": "deficiency",
+      "category": "serotonin",
+      "text": "I notice my digestion is sluggish or I suffer from constipation.",
+      "type": "boolean"
+    },
+    {
+      "id": "q_119",
+      "section": "deficiency",
+      "category": "serotonin",
+      "text": "I feel emotionally fragile and cry easily.",
+      "type": "boolean"
+    },
+    {
+      "id": "q_120",
+      "section": "deficiency",
+      "category": "serotonin",
+      "text": "I am overly sensitive to criticism from others.",
+      "type": "boolean"
+    }
+  ]
+}

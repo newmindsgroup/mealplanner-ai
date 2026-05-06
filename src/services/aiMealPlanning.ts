@@ -12,6 +12,10 @@ interface MealPlanRequest {
   budgetPreference?: string;
   prioritizePantryItems?: boolean;
   useExpiringItems?: boolean;
+  neuroProfile?: {
+    dominantNature: string;
+    primaryDeficiency: string | null;
+  };
 }
 
 const MEAL_SCHEMA = {
@@ -86,6 +90,7 @@ Budget: ${request.budgetPreference || 'Moderate'}
 Pantry Items Available: ${request.pantryItems?.join(', ') || 'None specified'}
 ${request.prioritizePantryItems ? 'IMPORTANT: Prioritize using available pantry items in recipes' : ''}
 ${request.useExpiringItems ? 'IMPORTANT: Use pantry items that are expiring soon when possible' : ''}
+${request.neuroProfile?.primaryDeficiency ? `\nNEURO-NUTRITIONAL FOCUS: The user has a ${request.neuroProfile.primaryDeficiency} deficiency based on their Braverman Assessment. Please prioritize foods and nutrients that support ${request.neuroProfile.primaryDeficiency} production in their meals.` : ''}
 
 Requirements:
 1. All meals must be compatible with blood types: ${bloodTypes.join(', ')}

@@ -3,9 +3,11 @@ import { useStore } from '../store/useStore';
 import APIKeySettings from './APIKeySettings';
 import SMTPSettings from './SMTPSettings';
 import NotificationPreferences from './NotificationPreferences';
+import { useAssessmentStore } from '../store/assessmentStore';
 
 export default function SettingsPanel() {
   const { settings, updateSettings, progress } = useStore();
+  const { isMonetizationEnabled, toggleMonetization } = useAssessmentStore();
 
   const handleClearData = () => {
     if (confirm('Are you sure you want to clear all data? This cannot be undone.')) {
@@ -193,6 +195,22 @@ export default function SettingsPanel() {
         {/* Notification Preferences */}
         <div className="card p-6">
           <NotificationPreferences />
+        </div>
+
+        {/* Super Admin / App Features */}
+        <div className="card p-6 border-2 border-purple-200 dark:border-purple-900/30">
+          <div className="flex items-center gap-3 mb-6">
+            <Key className="w-6 h-6 text-purple-600 dark:text-purple-400" />
+            <h2 className="text-xl font-bold text-gray-900 dark:text-white">Super Admin Features</h2>
+          </div>
+          <div className="space-y-4">
+            <ToggleSwitch
+              enabled={isMonetizationEnabled}
+              onChange={() => toggleMonetization(!isMonetizationEnabled)}
+              label="Monetize Neuro-Assessment"
+              description="Require payment to unlock the Braverman test"
+            />
+          </div>
         </div>
 
         {/* Data Management */}

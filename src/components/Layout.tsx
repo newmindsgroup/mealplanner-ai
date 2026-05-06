@@ -23,6 +23,7 @@ const ProfilePage = lazy(() => import('./profile/ProfilePage'));
 const MyPantryView = lazy(() => import('./pantry/MyPantryView'));
 const LabsRouter = lazy(() => import('./labs/LabsRouter'));
 const FitnessDashboard = lazy(() => import('./fitness/FitnessDashboard'));
+const NeuroAssessment = lazy(() => import('./assessment/NeuroAssessment'));
 
 export type TabType =
   | 'home'
@@ -39,7 +40,8 @@ export type TabType =
   | 'settings'
   | 'household'
   | 'user-profile'
-  | 'fitness';
+  | 'fitness'
+  | 'neuro-assessment';
 
 // Tab loading spinner
 function TabLoadingFallback() {
@@ -89,6 +91,8 @@ export default function Layout() {
         return <ProfilePage />;
       case 'fitness':
         return <FitnessDashboard />;
+      case 'neuro-assessment':
+        return <NeuroAssessment />;
       default:
         return <WeeklyPlanView />;
     }
