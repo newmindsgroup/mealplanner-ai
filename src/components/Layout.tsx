@@ -1,25 +1,31 @@
-import { useState } from 'react';
+import { useState, lazy, Suspense } from 'react';
 import Sidebar from './Sidebar';
+import WelcomeWidget from './WelcomeWidget';
 import DashboardHeader from './DashboardHeader';
 import MobileBottomNav from './MobileBottomNav';
 import ChatPanel from './ChatPanel';
 import APIStatusIndicator from './APIStatusIndicator';
-import ProfileSetup from './ProfileSetup';
-import WeeklyPlanView from './WeeklyPlanView';
-import BloodTypeFoodGuide from './BloodTypeFoodGuide';
-import GroceryListView from './GroceryListView';
-import KnowledgeBaseView from './KnowledgeBaseView';
-import FavoritesView from './FavoritesView';
-import ProgressDashboard from './ProgressDashboard';
-import LabelAnalyzer from './LabelAnalyzer';
-import SettingsPanel from './SettingsPanel';
-import HouseholdDashboard from './household/HouseholdDashboard';
-import ProfilePage from './profile/ProfilePage';
-import MyPantryView from './pantry/MyPantryView';
-import LabsRouter from './labs/LabsRouter';
-import FitnessDashboard from './fitness/FitnessDashboard';
+
+// ─── Lazy-loaded Dashboard Tabs ──────────────────────────────────────────────
+// Each tab is dynamically imported — only loads when the user navigates to it.
+// This reduces the initial JS payload from ~800KB to ~200KB.
+const ProfileSetup = lazy(() => import('./ProfileSetup'));
+const WeeklyPlanView = lazy(() => import('./WeeklyPlanView'));
+const BloodTypeFoodGuide = lazy(() => import('./BloodTypeFoodGuide'));
+const GroceryListView = lazy(() => import('./GroceryListView'));
+const KnowledgeBaseView = lazy(() => import('./KnowledgeBaseView'));
+const FavoritesView = lazy(() => import('./FavoritesView'));
+const ProgressDashboard = lazy(() => import('./ProgressDashboard'));
+const LabelAnalyzer = lazy(() => import('./LabelAnalyzer'));
+const SettingsPanel = lazy(() => import('./SettingsPanel'));
+const HouseholdDashboard = lazy(() => import('./household/HouseholdDashboard'));
+const ProfilePage = lazy(() => import('./profile/ProfilePage'));
+const MyPantryView = lazy(() => import('./pantry/MyPantryView'));
+const LabsRouter = lazy(() => import('./labs/LabsRouter'));
+const FitnessDashboard = lazy(() => import('./fitness/FitnessDashboard'));
 
 export type TabType =
+  | 'home'
   | 'profile'
   | 'weekly-plan'
   | 'my-pantry'
@@ -35,12 +41,26 @@ export type TabType =
   | 'user-profile'
   | 'fitness';
 
+// Tab loading spinner
+function TabLoadingFallback() {
+  return (
+    <div className="flex items-center justify-center py-24">
+      <div className="text-center space-y-3">
+        <div className="w-10 h-10 border-3 border-gray-200 dark:border-gray-700 border-t-primary-500 rounded-full animate-spin mx-auto" />
+        <p className="text-sm text-gray-400 dark:text-gray-500 font-medium">Loading…</p>
+      </div>
+    </div>
+  );
+}
+
 export default function Layout() {
-  const [activeTab, setActiveTab] = useState<TabType>('weekly-plan');
+  const [activeTab, setActiveTab] = useState<TabType>('home');
   const [sidebarOpen, setSidebarOpen] = useState(false);
 
   const renderContent = () => {
     switch (activeTab) {
+      case 'home':
+        return <WelcomeWidget onNavigate={(tab) => setActiveTab(tab as TabType)} />;
       case 'profile':
         return <ProfileSetup />;
       case 'weekly-plan':
@@ -70,7 +90,7 @@ export default function Layout() {
       case 'fitness':
         return <FitnessDashboard />;
       default:
-        return <WeeklyPlanView onNavigateToFitness={() => setActiveTab('fitness')} />;
+        return <WeeklyPlanView />;
     }
   };
 
@@ -98,20 +118,22 @@ export default function Layout() {
       />
       
       <div className="flex-1 flex flex-col overflow-hidden">
-        {/* Dashboard Header — replaces the floating hamburger */}
+        {/* Dashboard Header */}
         <DashboardHeader
           activeTab={activeTab}
           onToggleSidebar={() => setSidebarOpen(!sidebarOpen)}
         />
 
-        {/* API Status Indicator - Fixed in top-right (desktop only) */}
+        {/* API Status Indicator */}
         <div className="absolute top-16 right-4 z-30 hidden sm:block">
           <APIStatusIndicator />
         </div>
         
         <main className="flex-1 overflow-y-auto scrollbar-thin pb-20 lg:pb-0">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 lg:py-6 animate-fade-in">
-            {renderContent()}
+            <Suspense fallback={<TabLoadingFallback />}>
+              {renderContent()}
+            </Suspense>
           </div>
         </main>
         <ChatPanel />

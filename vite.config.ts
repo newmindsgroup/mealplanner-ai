@@ -15,6 +15,9 @@ export default defineConfig({
         theme_color: '#10b981',
         background_color: '#ffffff',
         display: 'standalone',
+        start_url: '/',
+        scope: '/',
+        categories: ['health', 'food', 'fitness', 'lifestyle'],
         icons: [
           {
             src: 'pwa-192x192.png',
@@ -25,11 +28,37 @@ export default defineConfig({
             src: 'pwa-512x512.png',
             sizes: '512x512',
             type: 'image/png'
+          },
+          {
+            src: 'pwa-512x512.png',
+            sizes: '512x512',
+            type: 'image/png',
+            purpose: 'maskable'
           }
         ]
       },
       workbox: {
-        globPatterns: ['**/*.{js,css,html,ico,png,svg}']
+        globPatterns: ['**/*.{js,css,html,ico,png,svg,woff2}'],
+        runtimeCaching: [
+          {
+            urlPattern: /^https:\/\/fonts\.googleapis\.com\/.*/i,
+            handler: 'CacheFirst',
+            options: {
+              cacheName: 'google-fonts-cache',
+              expiration: { maxEntries: 10, maxAgeSeconds: 60 * 60 * 24 * 365 },
+              cacheableResponse: { statuses: [0, 200] },
+            },
+          },
+          {
+            urlPattern: /^https:\/\/fonts\.gstatic\.com\/.*/i,
+            handler: 'CacheFirst',
+            options: {
+              cacheName: 'gstatic-fonts-cache',
+              expiration: { maxEntries: 10, maxAgeSeconds: 60 * 60 * 24 * 365 },
+              cacheableResponse: { statuses: [0, 200] },
+            },
+          },
+        ],
       }
     })
   ],
@@ -54,14 +83,29 @@ export default defineConfig({
     assetsDir: 'assets',
     emptyOutDir: true,
     sourcemap: false,
+    chunkSizeWarningLimit: 600,
     rollupOptions: {
       output: {
         manualChunks: {
+          // Core framework — loaded on every page
           'react-vendor': ['react', 'react-dom', 'react-router-dom'],
+          // Heavy libs — only loaded when needed
           'ai-vendor': ['tesseract.js'],
           'chart-vendor': ['recharts'],
-          'food-database': ['./src/data/bloodTypeFoods.ts'],
           'pdf-vendor': ['jspdf', 'jspdf-autotable', 'html2canvas'],
+          // Data
+          'food-database': ['./src/data/bloodTypeFoods.ts'],
+          // Fitness module — large, loads on demand via lazy()
+          'fitness-module': [
+            './src/components/fitness/FitnessDashboard.tsx',
+            './src/components/fitness/WorkoutLibrary.tsx',
+            './src/components/fitness/WorkoutPlanView.tsx',
+            './src/components/fitness/WorkoutSessionTracker.tsx',
+          ],
+          // Labs module
+          'labs-module': [
+            './src/components/labs/LabsRouter.tsx',
+          ],
         }
       }
     }

@@ -3,10 +3,40 @@
   <head>
     <meta charset="UTF-8" />
     <link rel="icon" type="image/svg+xml" href="/vite.svg" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <meta name="description" content="AI-powered nutrition planning with blood type compatibility" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+
+    <!-- SEO Meta Tags -->
+    <title>Meal Plan Assistant — AI-Powered Nutrition Planning</title>
+    <meta name="description" content="Transform your health journey with AI-powered meal planning. Get personalized nutrition based on your blood type, dietary preferences, and fitness goals. Plan smarter, eat better, thrive." />
+    <meta name="keywords" content="meal planning, nutrition, AI, blood type diet, fitness, grocery list, health, family meals, dietary preferences" />
+    <meta name="author" content="New Minds Group" />
+    <meta name="robots" content="index, follow" />
+    <link rel="canonical" href="https://mealplanner-ai-alpha.vercel.app/" />
+
+    <!-- Open Graph (Facebook, LinkedIn) -->
+    <meta property="og:title" content="Meal Plan Assistant — AI-Powered Nutrition Planning" />
+    <meta property="og:description" content="Discover meals perfectly matched to your blood type, dietary preferences, and health goals. Plan smarter with AI-powered guidance." />
+    <meta property="og:type" content="website" />
+    <meta property="og:url" content="https://mealplanner-ai-alpha.vercel.app/" />
+    <meta property="og:site_name" content="Meal Plan Assistant" />
+    <meta property="og:locale" content="en_US" />
+
+    <!-- Twitter Card -->
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content="Meal Plan Assistant — AI-Powered Nutrition" />
+    <meta name="twitter:description" content="Transform your health with AI meal planning. Blood type compatible, family-friendly, smart grocery lists." />
+
+    <!-- PWA / Mobile -->
     <meta name="theme-color" content="#10b981" />
-    <title>Meal Plan Assistant</title>
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+    <meta name="apple-mobile-web-app-title" content="MealPlan" />
+    <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
+
+    <!-- Preconnect to external resources -->
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+
     <!-- Load config.js if it exists (for cPanel/production) -->
     <script>
       // Load config.js if it exists (silently fail if not present)
@@ -29,7 +59,7 @@
         left: 0;
         right: 0;
         bottom: 0;
-        background: #f5f5f5;
+        background: linear-gradient(135deg, #ecfdf5 0%, #f0fdf4 50%, #f5f3ff 100%);
         display: flex;
         align-items: center;
         justify-content: center;
@@ -38,22 +68,23 @@
       " id="loading-fallback">
         <div style="
           background: white;
-          padding: 40px;
-          border-radius: 8px;
-          box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+          padding: 48px;
+          border-radius: 20px;
+          box-shadow: 0 4px 24px rgba(0,0,0,0.08);
           text-align: center;
           max-width: 400px;
         ">
-          <h1 style="color: #22c55e; margin-top: 0;">🍽️ Meal Plan Assistant</h1>
-          <p style="color: #6b7280;">Loading...</p>
+          <div style="font-size: 48px; margin-bottom: 16px;">🍽️</div>
+          <h1 style="color: #059669; margin: 0 0 8px; font-size: 22px; font-weight: 700;">Meal Plan Assistant</h1>
+          <p style="color: #9ca3af; margin: 0 0 24px; font-size: 14px;">Preparing your nutrition dashboard…</p>
           <div style="
-            width: 40px;
-            height: 40px;
-            border: 4px solid #e5e7eb;
-            border-top: 4px solid #22c55e;
+            width: 36px;
+            height: 36px;
+            border: 3px solid #e5e7eb;
+            border-top: 3px solid #10b981;
             border-radius: 50%;
-            animation: spin 1s linear infinite;
-            margin: 20px auto;
+            animation: spin 0.8s linear infinite;
+            margin: 0 auto;
           "></div>
           <style>
             @keyframes spin {
@@ -68,25 +99,24 @@
       // Remove loading fallback once React takes over
       window.addEventListener('load', function() {
         setTimeout(function() {
-          const fallback = document.getElementById('loading-fallback');
+          var fallback = document.getElementById('loading-fallback');
           if (fallback) {
-            fallback.style.display = 'none';
+            fallback.style.transition = 'opacity 0.3s ease';
+            fallback.style.opacity = '0';
+            setTimeout(function() { fallback.style.display = 'none'; }, 300);
           }
-        }, 2000);
+        }, 1500);
       });
       
       // Extended timeout - React might take longer to load
       setTimeout(function() {
-        const root = document.getElementById('root');
-        const fallback = document.getElementById('loading-fallback');
-        // Only show error if fallback is still there after 10 seconds
+        var root = document.getElementById('root');
+        var fallback = document.getElementById('loading-fallback');
         if (root && fallback && root.contains(fallback)) {
           console.warn('React taking longer than expected to load...');
-          // Don't replace, just log - let React handle it
         }
       }, 10000);
     </script>
     <script type="module" src="/src/main.tsx"></script>
   </body>
 </html>
-

@@ -15,6 +15,7 @@ interface DashboardHeaderProps {
 }
 
 const TAB_LABELS: Record<TabType, string> = {
+  'home': 'Dashboard',
   'profile': 'Family Profiles',
   'weekly-plan': 'Weekly Meal Plan',
   'my-pantry': 'My Pantry',

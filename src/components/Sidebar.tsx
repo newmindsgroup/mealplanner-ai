@@ -15,7 +15,8 @@ import {
   Apple,
   Package,
   Activity,
-  Dumbbell
+  Dumbbell,
+  LayoutDashboard
 } from 'lucide-react';
 import type { TabType } from './Layout';
 
@@ -36,6 +37,7 @@ const tabGroups: TabGroup[] = [
   {
     label: 'Planning',
     tabs: [
+      { id: 'home', label: 'Home', icon: LayoutDashboard, description: 'Dashboard overview' },
       { id: 'weekly-plan', label: 'Weekly Plan', icon: Calendar, description: 'Meal planning' },
       { id: 'grocery-list', label: 'Grocery List', icon: ShoppingCart, description: 'Shopping' },
       { id: 'my-pantry', label: 'My Pantry', icon: Package, description: 'Inventory' },
