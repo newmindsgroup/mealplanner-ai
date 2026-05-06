@@ -6,6 +6,7 @@ import { useStore } from '../store/useStore';
 export default function APIStatusIndicator() {
   const { settings } = useStore();
   const [isConfigured, setIsConfigured] = useState(false);
+  const [isProxy, setIsProxy] = useState(false);
   const [showTooltip, setShowTooltip] = useState(false);
 
   useEffect(() => {
@@ -27,7 +28,21 @@ export default function APIStatusIndicator() {
         return !!(env.VITE_OPENAI_API_KEY || env.VITE_ANTHROPIC_API_KEY);
       };
       
-      setIsConfigured(checkConfig());
+      const clientConfigured = checkConfig();
+      setIsConfigured(clientConfigured);
+
+      // If no client key, probe the server-side proxy
+      if (!clientConfigured) {
+        fetch('/api/health')
+          .then(res => res.json())
+          .then(data => {
+            if (data.success && data.ai?.available) {
+              setIsConfigured(true);
+              setIsProxy(true);
+            }
+          })
+          .catch(() => { /* Proxy not available */ });
+      }
     } catch (error) {
       setIsConfigured(false);
     }
@@ -55,6 +70,18 @@ export default function APIStatusIndicator() {
         icon: CheckCircle2,
         text: 'Custom Key',
         description: 'Using your personal OpenAI API key',
+      };
+    }
+
+    if (isProxy) {
+      return {
+        status: 'proxy',
+        color: 'text-emerald-500',
+        bgColor: 'bg-emerald-50 dark:bg-emerald-900/20',
+        borderColor: 'border-emerald-200 dark:border-emerald-800',
+        icon: CheckCircle2,
+        text: 'AI Ready',
+        description: 'Connected to Nourish AI via secure cloud proxy',
       };
     }
 
@@ -128,6 +155,13 @@ export default function APIStatusIndicator() {
               <div className="flex items-center gap-2 text-xs text-green-700 dark:text-green-300">
                 <CheckCircle2 className="w-3.5 h-3.5" />
                 <span>Your key is working perfectly</span>
+              </div>
+            )}
+
+            {statusInfo.status === 'proxy' && (
+              <div className="flex items-center gap-2 text-xs text-emerald-700 dark:text-emerald-300">
+                <CheckCircle2 className="w-3.5 h-3.5" />
+                <span>Nourish AI is powered by secure cloud infrastructure</span>
               </div>
             )}
 
