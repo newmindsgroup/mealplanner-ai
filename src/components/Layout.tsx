@@ -1,5 +1,7 @@
 import { useState } from 'react';
 import Sidebar from './Sidebar';
+import DashboardHeader from './DashboardHeader';
+import MobileBottomNav from './MobileBottomNav';
 import ChatPanel from './ChatPanel';
 import APIStatusIndicator from './APIStatusIndicator';
 import ProfileSetup from './ProfileSetup';
@@ -96,18 +98,27 @@ export default function Layout() {
       />
       
       <div className="flex-1 flex flex-col overflow-hidden">
-        {/* API Status Indicator - Fixed in top-right */}
-        <div className="absolute top-4 right-4 z-30 hidden sm:block">
+        {/* Dashboard Header — replaces the floating hamburger */}
+        <DashboardHeader
+          activeTab={activeTab}
+          onToggleSidebar={() => setSidebarOpen(!sidebarOpen)}
+        />
+
+        {/* API Status Indicator - Fixed in top-right (desktop only) */}
+        <div className="absolute top-16 right-4 z-30 hidden sm:block">
           <APIStatusIndicator />
         </div>
         
-        <main className="flex-1 overflow-y-auto scrollbar-thin">
-          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 lg:py-8 animate-fade-in">
+        <main className="flex-1 overflow-y-auto scrollbar-thin pb-20 lg:pb-0">
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 lg:py-6 animate-fade-in">
             {renderContent()}
           </div>
         </main>
         <ChatPanel />
       </div>
+
+      {/* Mobile Bottom Navigation */}
+      <MobileBottomNav activeTab={activeTab} onTabChange={handleTabChange} />
     </div>
   );
 }
