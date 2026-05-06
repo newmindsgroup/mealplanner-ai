@@ -10,6 +10,9 @@ import RegisterPage from './components/auth/RegisterPage';
 import ForgotPasswordPage from './components/auth/ForgotPasswordPage';
 import AcceptInvitationPage from './components/invitations/AcceptInvitationPage';
 import ProtectedRoute from './components/auth/ProtectedRoute';
+import PWAInstallPrompt from './components/PWAInstallPrompt';
+import SessionExpiryNotice from './components/SessionExpiryNotice';
+import OfflineIndicator from './components/OfflineIndicator';
 
 // Error Boundary Component
 class AppErrorBoundary extends Component<
@@ -272,6 +275,11 @@ function App() {
             onClose={() => setToast(null)}
           />
         )}
+
+        {/* Global overlays */}
+        <OfflineIndicator />
+        <SessionExpiryNotice />
+        <PWAInstallPrompt />
       </Suspense>
     );
   } catch (error) {
