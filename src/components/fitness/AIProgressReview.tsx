@@ -3,8 +3,10 @@
  * Phase 9 feature.
  */
 import React, { useState, useEffect } from 'react';
-import { TrendingUp, Zap, Target, Flame, RefreshCw, Loader2, CheckCircle, AlertCircle, Minus, ChevronDown, ChevronUp } from 'lucide-react';
+import { TrendingUp, Zap, Target, Flame, RefreshCw, Loader2, CheckCircle, AlertCircle, Minus, ChevronDown, ChevronUp, Sparkles } from 'lucide-react';
 import { api } from '../../services/apiClient';
+import SwarmAnalysisPanel from '../shared/SwarmAnalysisPanel';
+import { checkSwarmHealth, type SwarmHealthStatus } from '../../services/swarmService';
 
 interface ProgressReview {
   overallProgress: 'excellent' | 'good' | 'steady' | 'plateau' | 'declining';
@@ -38,8 +40,11 @@ export default function AIProgressReview({ personId, personName }: Props) {
   const [review, setReview] = useState<ProgressReview | null>(null);
   const [loading, setLoading] = useState(false);
   const [expanded, setExpanded] = useState<Record<string, boolean>>({ insights: true });
+  const [swarmHealth, setSwarmHealth] = useState<SwarmHealthStatus | null>(null);
+  const [showSwarmPanels, setShowSwarmPanels] = useState(false);
 
   useEffect(() => { load(false); }, [personId]);
+  useEffect(() => { checkSwarmHealth().then(setSwarmHealth).catch(() => {}); }, []);
 
   const load = async (force = false) => {
     setLoading(true);
@@ -155,6 +160,67 @@ export default function AIProgressReview({ personId, personName }: Props) {
                 <Zap className="w-4 h-4" /> Next Week's AI Plan Adjustment
               </p>
               <p className="text-xs text-gray-600 dark:text-gray-400 leading-relaxed">{review.nextWeekAdjustments}</p>
+            </div>
+          )}
+
+          {/* NourishAI Deep Fitness Intelligence */}
+          {swarmHealth?.status === 'healthy' && (
+            <div className="bg-white dark:bg-gray-800 rounded-2xl border border-gray-100 dark:border-gray-700 overflow-hidden">
+              <button
+                onClick={() => setShowSwarmPanels(!showSwarmPanels)}
+                className="w-full flex items-center justify-between px-4 py-3 text-left hover:bg-gray-50 dark:hover:bg-gray-750 transition-colors"
+              >
+                <div className="flex items-center gap-2">
+                  <div className="p-1 bg-gradient-to-r from-orange-500 to-rose-500 rounded-lg">
+                    <Sparkles className="w-3.5 h-3.5 text-white" />
+                  </div>
+                  <div>
+                    <span className="font-bold text-sm text-gray-900 dark:text-white">NourishAI Deep Analysis</span>
+                    <p className="text-[10px] text-gray-400">Statistical workout analysis, monthly PDF, exercise demos</p>
+                  </div>
+                </div>
+                {showSwarmPanels ? <ChevronUp className="w-4 h-4 text-gray-400" /> : <ChevronDown className="w-4 h-4 text-gray-400" />}
+              </button>
+              {showSwarmPanels && (
+                <div className="px-4 pb-4 space-y-4 border-t border-gray-50 dark:border-gray-700 pt-4">
+                  <SwarmAnalysisPanel
+                    taskType="fitness_analysis"
+                    context={{
+                      personName,
+                      sessionsCompleted: review.sessionsCompleted,
+                      sessionsPlanned: review.sessionsPlanned,
+                      completionRate: review.completionRate,
+                      overallProgress: review.overallProgress,
+                      streakDays: review.streakDays,
+                      weightTrend: review.weightTrend,
+                      keyInsights: review.keyInsights,
+                    }}
+                    title="Statistical Fitness Analysis"
+                    description="Strength curves, volume trends, plateau detection, and muscle balance analysis."
+                    buttonLabel="Analyze My Workouts"
+                    accentColor="amber"
+                    gradientClasses="from-amber-50 to-orange-50 dark:from-amber-950/20 dark:to-orange-950/20"
+                  />
+
+                  <SwarmAnalysisPanel
+                    taskType="fitness_monthly_report"
+                    context={{
+                      personName,
+                      sessionsCompleted: review.sessionsCompleted,
+                      completionRate: review.completionRate,
+                      overallProgress: review.overallProgress,
+                      streakDays: review.streakDays,
+                      strengths: review.strengths,
+                      areasToImprove: review.areasToImprove,
+                    }}
+                    title="Monthly Progress Report PDF"
+                    description="Professional report with charts, milestones, body composition, and next-month programming."
+                    buttonLabel="Generate Monthly PDF"
+                    accentColor="blue"
+                    gradientClasses="from-blue-50 to-indigo-50 dark:from-blue-950/20 dark:to-indigo-950/20"
+                  />
+                </div>
+              )}
             </div>
           )}
         </>
