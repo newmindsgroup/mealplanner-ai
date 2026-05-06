@@ -20,6 +20,7 @@ import ChatSessionSidebar from './chat/ChatSessionSidebar';
 import type { ChatAttachment, EnhancedChatMessage, ChatAction } from '../types/chat';
 import { detectIntent, extractStructuredData, commitExtraction } from '../services/chatDataRouter';
 import { getPageContext, buildContextualSystemPrompt } from '../services/smartAutofill';
+import { checkSwarmHealth, startSwarmTask, type SwarmHealthStatus, type SwarmTaskType } from '../services/swarmService';
 
 // Icon name → component mapping for dynamic context suggestions
 const ICON_MAP: Record<string, typeof Calendar> = {
@@ -40,6 +41,12 @@ export default function ChatPanel({ activeTab = 'home' }: ChatPanelProps) {
   const [isExpanded, setIsExpanded] = useState(false);
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [retryingMessageId, setRetryingMessageId] = useState<string | null>(null);
+  const [swarmStatus, setSwarmStatus] = useState<SwarmHealthStatus | null>(null);
+
+  // Check swarm availability on mount
+  useEffect(() => {
+    checkSwarmHealth().then(setSwarmStatus).catch(() => {});
+  }, []);
 
   // Get active session messages
   const activeSession = sessionStore.getActiveSession();
@@ -116,10 +123,41 @@ export default function ChatPanel({ activeTab = 'home' }: ChatPanelProps) {
 
       // Run chat response and data extraction in parallel
       const intent = detectIntent(userInput, attachments);
-      const [response, extractedPayload] = await Promise.all([
-        chatWithAssistant(enrichedInput, context),
-        intent ? extractStructuredData(intent, userInput, attachments) : Promise.resolve(null),
-      ]);
+
+      // Detect if this is a deep analysis query that should route to swarm
+      const swarmRoute = swarmStatus?.status === 'healthy' ? detectSwarmRoute(userInput) : null;
+
+      let response: string;
+      let extractedPayload: any = null;
+
+      if (swarmRoute) {
+        // Route to NourishAI multi-agent swarm
+        sessionStore.updateMessage(sessionId, loadingMessage.id, {
+          content: '🧠 Routing to NourishAI agents...\n' + (toolHints || ''),
+        });
+
+        try {
+          const swarmResult = await startSwarmTask(swarmRoute.taskType, swarmRoute.context, enrichedInput);
+          response = `**${swarmResult.agentName || 'NourishAI'}** analyzed your request:\n\n${swarmResult.message}`;
+          if (swarmResult.files && swarmResult.files.length > 0) {
+            response += '\n\n📎 **Generated Files:**\n' +
+              swarmResult.files.map(f => `• [${f.name}](/api/swarm/files/${encodeURIComponent(f.name)})`).join('\n');
+          }
+        } catch (swarmErr) {
+          // Fallback to standard chat if swarm fails
+          console.warn('[Chat] Swarm failed, falling back to standard chat:', swarmErr);
+          [response, extractedPayload] = await Promise.all([
+            chatWithAssistant(enrichedInput, context),
+            intent ? extractStructuredData(intent, userInput, attachments) : Promise.resolve(null),
+          ]) as [string, any];
+        }
+      } else {
+        // Standard AI chat
+        [response, extractedPayload] = await Promise.all([
+          chatWithAssistant(enrichedInput, context),
+          intent ? extractStructuredData(intent, userInput, attachments) : Promise.resolve(null),
+        ]) as [string, any];
+      }
 
       const assistantMessage: EnhancedChatMessage = {
         id: crypto.randomUUID(),
@@ -279,6 +317,12 @@ export default function ChatPanel({ activeTab = 'home' }: ChatPanelProps) {
               <h3 className="font-bold text-gray-900 dark:text-white">Nourish AI</h3>
               <p className="text-xs text-gray-500 dark:text-gray-400 truncate">
                 {activeSession ? activeSession.title : 'Multi-format nutrition expert'}
+                {swarmStatus?.status === 'healthy' && (
+                  <span className="ml-1.5 inline-flex items-center gap-1 text-purple-500">
+                    <span className="w-1.5 h-1.5 bg-purple-500 rounded-full animate-pulse" />
+                    NourishAI
+                  </span>
+                )}
               </p>
             </div>
           </div>
@@ -388,4 +432,51 @@ function getToolUseHints(input: string): string | null {
 
   if (hints.length === 0) return null;
   return hints.join('\n') + '\n\n⏳ Gathering evidence...';
+}
+
+// ─── Swarm Route Detection ──────────────────────────────────────────────────
+// Detects queries that benefit from multi-agent analysis
+
+function detectSwarmRoute(input: string): { taskType: SwarmTaskType; context: Record<string, unknown> } | null {
+  const lower = input.toLowerCase();
+
+  // Deep lab analysis patterns
+  if (/\b(deep\s*analy|comprehensive\s*(lab|blood)|functional\s*range|optimal\s*range|pubmed.*(lab|blood))\b/.test(lower)) {
+    return { taskType: 'lab_deep_analysis', context: { query: input } };
+  }
+
+  // Neuro research patterns
+  if (/\b(neuro.*(research|protocol|recovery)|braverman.*(research|deep)|neurotransmitter.*(study|research|protocol))\b/.test(lower)) {
+    return { taskType: 'neuro_research_protocol', context: { query: input } };
+  }
+
+  // Fitness analysis patterns
+  if (/\b(statistical.*(workout|fitness|exercise)|plateau\s*detect|strength\s*curve|volume\s*trend|monthly.*(fitness|progress)\s*report)\b/.test(lower)) {
+    return { taskType: 'fitness_analysis', context: { query: input } };
+  }
+
+  // Comprehensive health report
+  if (/\b(comprehensive\s*health|full\s*health\s*report|doctor\s*visit\s*(prep|package)|cross.domain)\b/.test(lower)) {
+    return { taskType: 'health_report_comprehensive', context: { query: input } };
+  }
+
+  // PDF generation requests
+  if (/\b(generate|create|make|export).{0,20}(pdf|report|document)\b/.test(lower)) {
+    if (/\b(lab|blood)\b/.test(lower)) return { taskType: 'lab_report_pdf', context: { query: input } };
+    if (/\b(neuro|brain|braverman)\b/.test(lower)) return { taskType: 'neuro_protocol_pdf', context: { query: input } };
+    if (/\b(fitness|workout|exercise)\b/.test(lower)) return { taskType: 'fitness_monthly_report', context: { query: input } };
+    return { taskType: 'health_report_comprehensive', context: { query: input } };
+  }
+
+  // Meal plan validation
+  if (/\b(verified\s*meal|usda.*(validate|verify)|blood\s*type.*(meal|recipe|plan))\b/.test(lower)) {
+    return { taskType: 'meal_plan_verified', context: { query: input } };
+  }
+
+  // Exercise demos
+  if (/\b(show\s*me\s*(how|the)\s*(to|form)|exercise\s*demo|proper\s*form|movement\s*tutorial)\b/.test(lower)) {
+    return { taskType: 'exercise_demo_video', context: { query: input } };
+  }
+
+  return null;
 }
