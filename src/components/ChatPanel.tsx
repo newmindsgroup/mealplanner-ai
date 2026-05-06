@@ -432,6 +432,12 @@ function getToolUseHints(input: string): string | null {
   if (/\b(blood\s*type|can\s+i\s+eat|should\s+i\s+eat|food.*(beneficial|avoid)|d'?adamo)\b/.test(lower)) {
     hints.push('🩸 Checking blood type food compatibility');
   }
+  if (/\b(pre[\s-]*workout|post[\s-]*workout|before\s+(workout|exercise|gym)|after\s+(workout|exercise|gym)|workout\s*(food|meal|nutrition))\b/.test(lower)) {
+    hints.push('💪 Looking up exercise nutrition protocols');
+  }
+  if (/\b(when\s+to\s+take|best\s+time|timing|supplement\s+schedule|daily\s+schedule|take.*morning|take.*bedtime)\b/.test(lower)) {
+    hints.push('⏰ Checking supplement timing protocols');
+  }
 
   if (hints.length === 0) return null;
   return hints.join('\n') + '\n\n⏳ Gathering evidence...';

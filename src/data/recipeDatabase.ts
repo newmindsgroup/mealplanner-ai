@@ -8,6 +8,7 @@
  */
 import { BLOOD_TYPE_RECIPES } from './bloodTypeRecipes';
 import { EXTENDED_RECIPES } from './extendedRecipes';
+import { DINNER_DESSERT_RECIPES } from './dinnerDessertRecipes';
 
 // ─── Types ──────────────────────────────────────────────────────────────────
 
@@ -216,6 +217,7 @@ const RECIPES: RecipeResult[] = [
   },
   ...BLOOD_TYPE_RECIPES,
   ...EXTENDED_RECIPES,
+  ...DINNER_DESSERT_RECIPES,
 ];
 
 // ─── Search Function ────────────────────────────────────────────────────────

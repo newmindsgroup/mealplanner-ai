@@ -19,6 +19,8 @@ import { findBiomarker, evaluateResult } from '../data/biomarkerDatabase';
 import { checkInteractions, type InteractionResult } from '../data/interactionDatabase';
 import { searchRecipeDatabase, type RecipeResult } from '../data/recipeDatabase';
 import { lookupFoodCompatibility, getBloodTypeFoodReport, getSuperfoods, FOOD_COUNT } from '../data/bloodTypeFoodDatabase';
+import { getExerciseNutritionProtocol, getExercisesForBloodType, searchExerciseNutrition } from '../data/exerciseNutritionDatabase';
+import { getSupplementTiming, getDailySupplementSchedule, checkSupplementConflicts, SUPPLEMENT_COUNT } from '../data/supplementTimingDatabase';
 
 // ─── Types ──────────────────────────────────────────────────────────────────
 
@@ -109,6 +111,18 @@ export function detectToolNeeds(message: string): ToolIntent | null {
     queries.checkFoodCompatibility = lower;
   }
 
+  // Exercise nutrition timing
+  if (/\b(pre[\s-]*workout|post[\s-]*workout|before\s+(workout|exercise|gym|training)|after\s+(workout|exercise|gym|training)|workout\s*(food|meal|nutrition|eat)|exercise\s*(nutrition|fuel|diet))\b/.test(lower)) {
+    tools.push('exerciseNutrition');
+    queries.exerciseNutrition = lower;
+  }
+
+  // Supplement timing
+  if (/\b(when\s+(?:to|should\s+i)\s+take|best\s+time.*(?:take|supplement)|timing|take.*(?:morning|evening|bedtime|empty\s+stomach|with\s+food)|daily\s+schedule|supplement\s+schedule)\b/.test(lower)) {
+    tools.push('supplementTiming');
+    queries.supplementTiming = lower;
+  }
+
   if (tools.length === 0) return null;
   return { tools, queries };
 }
@@ -139,6 +153,10 @@ export async function executeTools(intent: ToolIntent): Promise<DataEnrichmentRe
           return await executeTrialSearch(intent.queries.searchTrials);
         case 'checkFoodCompatibility':
           return await executeFoodCompatibilityCheck(intent.queries.checkFoodCompatibility);
+        case 'exerciseNutrition':
+          return await executeExerciseNutritionLookup(intent.queries.exerciseNutrition);
+        case 'supplementTiming':
+          return await executeSupplementTimingLookup(intent.queries.supplementTiming);
         default:
           return null;
       }
@@ -308,6 +326,128 @@ async function executeFoodCompatibilityCheck(query: string): Promise<ToolResult>
       superfoods: superfoods.slice(0, 8).map(f => f.food),
     },
     citation: 'Source: D\'Adamo "Eat Right 4 Your Type" (dadamo.com)',
+  };
+}
+
+async function executeExerciseNutritionLookup(query: string): Promise<ToolResult> {
+  // Detect exercise type from query
+  const exercisePatterns: Array<[RegExp, string]> = [
+    [/\b(strength|weight|lift|squat|deadlift|bench|powerlifting)\b/i, 'strength'],
+    [/\b(hiit|interval|sprint|cardio|metabolic)\b/i, 'hiit'],
+    [/\b(yoga|tai\s*chi|pilates|stretch|flexibility)\b/i, 'yoga'],
+    [/\b(run|marathon|cycling|bike|endurance|long\s*distance|jog)\b/i, 'endurance'],
+    [/\b(swim|pool|aquatic|water\s*aerobic)\b/i, 'swimming'],
+  ];
+
+  let protocol = null;
+  for (const [pattern, keyword] of exercisePatterns) {
+    if (pattern.test(query)) {
+      protocol = getExerciseNutritionProtocol(keyword);
+      break;
+    }
+  }
+
+  // Extract blood type for personalized notes
+  const btMatch = query.match(/(?:blood\s*)?type\s*([oab]{1,2})/i);
+  const bloodType = btMatch ? btMatch[1].toUpperCase() : '';
+
+  if (protocol) {
+    const data: Record<string, unknown> = {
+      exerciseType: protocol.exerciseType,
+      idealBloodTypes: protocol.idealBloodTypes,
+      preWorkout: protocol.preWorkout,
+      postWorkout: protocol.postWorkout,
+      hydration: protocol.hydration,
+    };
+    if (protocol.duringWorkout) {
+      data.duringWorkout = protocol.duringWorkout;
+    }
+    if (bloodType && protocol.bloodTypeNotes[bloodType]) {
+      data.bloodTypeNote = protocol.bloodTypeNotes[bloodType];
+    }
+    return {
+      tool: 'Exercise Nutrition',
+      query: protocol.exerciseType,
+      data,
+      citation: 'Sources: ISSN Position Stands, ACSM Guidelines, D\'Adamo (4yourtype.com)',
+    };
+  }
+
+  // No specific match — return blood-type ranked exercises
+  if (bloodType) {
+    const ranked = getExercisesForBloodType(bloodType);
+    return {
+      tool: 'Exercise Nutrition',
+      query: `Best exercises for Type ${bloodType}`,
+      data: ranked.map(p => ({
+        exerciseType: p.exerciseType,
+        isIdeal: p.idealBloodTypes.includes(bloodType),
+        note: p.bloodTypeNotes[bloodType],
+      })),
+      citation: 'Sources: ISSN, D\'Adamo (4yourtype.com)',
+    };
+  }
+
+  // Generic — return all protocols summary
+  const all = searchExerciseNutrition('');
+  return {
+    tool: 'Exercise Nutrition',
+    query: 'workout nutrition',
+    data: { message: `${all.length} exercise nutrition protocols available. Specify exercise type for details.` },
+    citation: 'Sources: ISSN Position Stands, ACSM',
+  };
+}
+
+async function executeSupplementTimingLookup(query: string): Promise<ToolResult> {
+  // Try to find a specific supplement in the query
+  const suppNames = ['vitamin d', 'd3', 'vitamin c', 'b12', 'b-complex', 'magnesium', 'iron', 'zinc',
+    'calcium', 'omega', 'fish oil', 'ashwagandha', 'rhodiola', 'lion', 'theanine', 'creatine',
+    'collagen', 'probiotic', 'vitamin k', 'vitamin a'];
+  const matched = suppNames.find(s => query.includes(s));
+
+  if (matched) {
+    const timing = getSupplementTiming(matched);
+    if (timing) {
+      return {
+        tool: 'Supplement Timing',
+        query: timing.name,
+        data: {
+          name: timing.name,
+          bestTime: timing.bestTime,
+          mealTiming: timing.mealTiming,
+          dosageRange: timing.dosageRange,
+          takeWith: timing.takeWith,
+          avoidWith: timing.avoidWith,
+          absorptionNotes: timing.absorptionNotes,
+          bloodTypeNotes: timing.bloodTypeNotes,
+        },
+        citation: 'Sources: NIH ODS, ConsumerLab, Examine.com, D\'Adamo',
+      };
+    }
+  }
+
+  // Return full daily schedule
+  if (/schedule|daily|routine|stack/i.test(query)) {
+    const schedule = getDailySupplementSchedule();
+    return {
+      tool: 'Supplement Timing',
+      query: 'Daily supplement schedule',
+      data: {
+        morning: schedule.morning.map(s => `${s.name} (${s.mealTiming})`),
+        evening: schedule.evening.map(s => `${s.name} (${s.mealTiming})`),
+        bedtime: schedule.bedtime.map(s => `${s.name} (${s.mealTiming})`),
+        anytime: schedule.any.map(s => `${s.name} (${s.mealTiming})`),
+        totalSupplements: SUPPLEMENT_COUNT,
+      },
+      citation: 'Sources: NIH ODS, ConsumerLab, Examine.com',
+    };
+  }
+
+  return {
+    tool: 'Supplement Timing',
+    query,
+    data: { message: `${SUPPLEMENT_COUNT} supplements with timing data available. Ask about a specific supplement.` },
+    citation: 'Sources: NIH ODS, ConsumerLab',
   };
 }
 
