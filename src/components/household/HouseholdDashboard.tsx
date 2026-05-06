@@ -5,6 +5,7 @@ import { useHousehold } from '../../contexts/HouseholdContext';
 import { useStore } from '../../store/useStore';
 import MemberList from './MemberList';
 import HouseholdSettings from './HouseholdSettings';
+import HouseholdFoodComparison from './HouseholdFoodComparison';
 import CreateHouseholdModal from './CreateHouseholdModal';
 import InviteMemberModal from '../invitations/InviteMemberModal';
 import { hasPermission } from '../../utils/permissions';
@@ -184,6 +185,11 @@ export default function HouseholdDashboard() {
                 <p>No recent activity</p>
               </div>
             </div>
+          </div>
+
+          {/* Family Food Compatibility */}
+          <div className="card p-6">
+            <HouseholdFoodComparison />
           </div>
         </div>
       )}

@@ -3,9 +3,12 @@
  * Shows protein targets, carb cycling, hydration, and pre/post workout nutrition.
  * Phase 8 feature.
  */
-import React, { useState, useEffect } from 'react';
-import { Apple, Droplets, Zap, Flame, Target, TrendingUp, Info, ChevronDown, ChevronUp } from 'lucide-react';
+import React, { useState, useEffect, useMemo } from 'react';
+import { Apple, Droplets, Zap, Flame, Target, TrendingUp, Info, ChevronDown, ChevronUp, Pill } from 'lucide-react';
 import type { FitnessProfile } from '../../services/fitnessService';
+import { getExerciseNutritionProtocol, getExercisesForBloodType } from '../../data/exerciseNutritionDatabase';
+import { getDailySupplementSchedule, getSupplementBloodTypeNote } from '../../data/supplementTimingDatabase';
+import { useStore } from '../../store/useStore';
 
 interface MacroData {
   calories: number;
@@ -104,7 +107,28 @@ function MacroRing({ label, grams, target, color, unit = 'g' }: {
 
 export default function NutritionFitnessBridge({ profile, todayIsWorkoutDay, personName }: Props) {
   const [expanded, setExpanded] = useState<Record<string, boolean>>({});
+  const { people } = useStore();
+  const bloodType = people[0]?.bloodType || '';
   const t = computeTargets(profile, todayIsWorkoutDay);
+
+  // Get blood-type-aware exercise nutrition protocol
+  const exerciseProtocol = useMemo(() => {
+    const goal = profile?.primary_goal || 'general_health';
+    const typeMap: Record<string, string> = {
+      muscle_gain: 'strength', weight_loss: 'hiit', endurance: 'endurance',
+      flexibility: 'yoga', general_health: 'strength',
+    };
+    return getExerciseNutritionProtocol(typeMap[goal] || 'strength');
+  }, [profile]);
+
+  // Get top supplements for workout days
+  const workoutSupplements = useMemo(() => {
+    const schedule = getDailySupplementSchedule();
+    const relevantSupps = schedule.morning.filter(s =>
+      s.exerciseTiming === 'pre-workout' || s.exerciseTiming === 'post-workout' || s.exerciseTiming === 'any'
+    );
+    return relevantSupps.slice(0, 4);
+  }, []);
 
   const toggle = (key: string) => setExpanded(e => ({ ...e, [key]: !e[key] }));
 
@@ -198,10 +222,32 @@ export default function NutritionFitnessBridge({ profile, todayIsWorkoutDay, per
               <p className="text-xs text-gray-600 dark:text-gray-400">Keep calories slightly lower. Maintain protein intake ({t.protein}g). Focus on whole foods, vegetables, and healthy fats for recovery and hormonal balance.</p>
             </div>
           )}
-          <div className="bg-gray-50 dark:bg-gray-900 rounded-xl p-3">
-            <p className="text-xs font-bold text-gray-700 dark:text-gray-300 mb-1">💊 Supplement Stack Suggestion</p>
-            <p className="text-xs text-gray-500">Creatine monohydrate (5g/day, any time) · Omega-3 (2–3g EPA+DHA) · Vitamin D3 (2000–4000 IU) · Whey protein if falling short of target</p>
-          </div>
+            <div className="bg-gray-50 dark:bg-gray-900 rounded-xl p-3">
+              <p className="text-xs font-bold text-gray-700 dark:text-gray-300 mb-1">💊 Exercise Supplement Stack</p>
+              <div className="space-y-1">
+                {workoutSupplements.map(s => {
+                  const btNote = bloodType ? getSupplementBloodTypeNote(s.name, bloodType) : null;
+                  return (
+                    <div key={s.name} className="text-xs text-gray-500">
+                      <span className="font-semibold">{s.name}</span> ({s.dosageRange})
+                      {s.exerciseTiming && <span className="text-gray-400"> · {s.exerciseTiming}</span>}
+                      {btNote && <span className="text-violet-500 dark:text-violet-400 block text-[10px] ml-2">🩸 {btNote}</span>}
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+            {exerciseProtocol && (
+              <div className="bg-blue-50 dark:bg-blue-950/20 rounded-xl p-3 border border-blue-100 dark:border-blue-900/30">
+                <p className="text-xs font-bold text-blue-700 dark:text-blue-400 mb-1">🏃 {exerciseProtocol.exerciseType} Protocol</p>
+                <p className="text-xs text-gray-600 dark:text-gray-400">Hydration: {exerciseProtocol.hydration.during}</p>
+                {exerciseProtocol.bloodTypeNotes && bloodType && (
+                  <p className="text-[10px] text-violet-600 dark:text-violet-400 mt-1">
+                    🩸 Type {bloodType.replace(/[+-]/, '')}: {exerciseProtocol.bloodTypeNotes[bloodType.replace(/[+-]/, '').toUpperCase()] || 'Follow general protocol'}
+                  </p>
+                )}
+              </div>
+            )}
         </div>
       ),
     },
