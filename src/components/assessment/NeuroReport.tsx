@@ -12,6 +12,8 @@ import {
   Loader2, Pill, Utensils, Dumbbell, AlertTriangle, CheckCircle2,
   ChevronDown, ChevronUp, Sparkles, Clock, ArrowRight,
 } from 'lucide-react';
+import SwarmAnalysisPanel from '../shared/SwarmAnalysisPanel';
+import { checkSwarmHealth, type SwarmHealthStatus } from '../../services/swarmService';
 
 export default function NeuroReport() {
   const {
@@ -28,6 +30,12 @@ export default function NeuroReport() {
     supplements: false,
     lifestyle: false,
   });
+  const [swarmHealth, setSwarmHealth] = useState<SwarmHealthStatus | null>(null);
+  const [showSwarmAnalysis, setShowSwarmAnalysis] = useState(false);
+
+  useEffect(() => {
+    checkSwarmHealth().then(setSwarmHealth).catch(() => {});
+  }, []);
 
   const displayResult = getAdjustedResult() || result;
 
@@ -410,6 +418,83 @@ export default function NeuroReport() {
             <Sparkles className="w-4 h-4" />
             Generate AI Protocol
           </button>
+        </div>
+      )}
+
+      {/* NourishAI Deep Neuro Intelligence */}
+      {swarmHealth?.status === 'healthy' && displayResult && (
+        <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-100 dark:border-gray-700 overflow-hidden">
+          <button
+            onClick={() => setShowSwarmAnalysis(!showSwarmAnalysis)}
+            className="w-full flex items-center justify-between p-6 hover:bg-gray-50 dark:hover:bg-gray-750 transition-colors"
+          >
+            <div className="flex items-center gap-3">
+              <div className="p-1.5 bg-gradient-to-r from-purple-500 to-indigo-500 rounded-lg">
+                <Sparkles className="w-5 h-5 text-white" />
+              </div>
+              <div className="text-left">
+                <h3 className="text-lg font-bold text-gray-900 dark:text-white">NourishAI Deep Intelligence</h3>
+                <p className="text-xs text-gray-500">PubMed research, drug interactions, clinical protocols</p>
+              </div>
+            </div>
+            {showSwarmAnalysis ? <ChevronUp className="w-5 h-5 text-gray-400" /> : <ChevronDown className="w-5 h-5 text-gray-400" />}
+          </button>
+          {showSwarmAnalysis && (
+            <div className="px-6 pb-6 space-y-4">
+              <SwarmAnalysisPanel
+                taskType="neuro_research_protocol"
+                context={{
+                  memberName: activePerson?.name,
+                  dominantNature: displayResult.dominantNature,
+                  primaryDeficiency: displayResult.primaryDeficiency,
+                  natureScores: displayResult.natureScores,
+                  deficiencyScores: displayResult.deficiencyScores,
+                  deficiencyLevels: displayResult.deficiencyLevels,
+                  bloodType: activePerson?.bloodType,
+                  age: activePerson?.age,
+                  allergies: activePerson?.allergies,
+                }}
+                title="Research-Backed Neuro Protocol"
+                description="PubMed studies for each deficiency, supplement validation, drug interaction checks."
+                buttonLabel="Research My Profile"
+                accentColor="purple"
+                gradientClasses="from-purple-50 to-indigo-50 dark:from-purple-950/20 dark:to-indigo-950/20"
+              />
+
+              <SwarmAnalysisPanel
+                taskType="neuro_lab_correlation"
+                context={{
+                  memberName: activePerson?.name,
+                  dominantNature: displayResult.dominantNature,
+                  primaryDeficiency: displayResult.primaryDeficiency,
+                  deficiencyScores: displayResult.deficiencyScores,
+                }}
+                title="Neuro-Lab Statistical Correlation"
+                description="Statistical analysis correlating your neurotransmitter profile with blood biomarkers."
+                buttonLabel="Run Correlation Analysis"
+                accentColor="blue"
+                gradientClasses="from-blue-50 to-cyan-50 dark:from-blue-950/20 dark:to-cyan-950/20"
+              />
+
+              <SwarmAnalysisPanel
+                taskType="neuro_protocol_pdf"
+                context={{
+                  memberName: activePerson?.name,
+                  dominantNature: displayResult.dominantNature,
+                  primaryDeficiency: displayResult.primaryDeficiency,
+                  natureScores: displayResult.natureScores,
+                  deficiencyScores: displayResult.deficiencyScores,
+                  deficiencyLevels: displayResult.deficiencyLevels,
+                  bloodType: activePerson?.bloodType,
+                }}
+                title="Export Protocol PDF"
+                description="Professional recovery protocol document with dosing, timing, dietary plan, and references."
+                buttonLabel="Generate PDF Protocol"
+                accentColor="rose"
+                gradientClasses="from-rose-50 to-pink-50 dark:from-rose-950/20 dark:to-pink-950/20"
+              />
+            </div>
+          )}
         </div>
       )}
 
