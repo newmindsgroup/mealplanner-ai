@@ -41,6 +41,8 @@ if (config.nodeEnv === 'development') {
 }
 
 // Body parsing
+// IMPORTANT: Stripe webhooks need raw body — must come before express.json()
+app.use('/api/billing/webhook', express.raw({ type: 'application/json' }));
 app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 
@@ -63,9 +65,15 @@ app.use('/uploads', express.static(path.join(__dirname, '../uploads')));
 app.get('/api/health', (req, res) => {
   res.json({
     success: true,
-    message: 'Server is running',
+    message: 'NourishAI Server is running',
+    version: '2.0.0',
     timestamp: new Date().toISOString(),
     environment: config.nodeEnv,
+    services: {
+      stripe: !!process.env.STRIPE_SECRET_KEY,
+      swarm: !!process.env.NOURISH_SWARM_URL,
+      usda: !!process.env.USDA_API_KEY,
+    },
   });
 });
 
@@ -133,6 +141,14 @@ app.use('/api/import', require('./routes/import'));
 // NourishAI Swarm Intelligence Bridge
 app.use('/api/swarm', require('./routes/swarm'));
 
+// Stripe Billing & Subscription Management
+try {
+  app.use('/api/billing', require('./routes/billing'));
+  console.log('✅ Stripe billing routes loaded');
+} catch (err) {
+  console.warn('⚠️ Stripe billing routes skipped (stripe package not installed)');
+}
+
 // ============================================================================
 // SERVE FRONTEND (Production)
 // ============================================================================
@@ -178,6 +194,14 @@ async function startServer() {
       await runFitnessMigrations();
     } catch (migErr) {
       console.warn('[Migrations] Fitness migrations skipped:', migErr.message);
+    }
+
+    // Run billing migrations (add Stripe fields to users) — idempotent
+    try {
+      const { runBillingMigrations } = require('./database/billingMigrations');
+      await runBillingMigrations();
+    } catch (migErr) {
+      console.warn('[Migrations] Billing migrations skipped:', migErr.message);
     }
 
     // Start listening

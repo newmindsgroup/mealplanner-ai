@@ -29,7 +29,7 @@ export interface RecipeResult {
 
 // ─── Recipe Database ────────────────────────────────────────────────────────
 
-const RECIPES: RecipeResult[] = [
+export const RECIPES: RecipeResult[] = [
   // ── Smoothies ─────────────────────────────────────────────────────────
   {
     name: 'Anti-Inflammatory Turmeric Smoothie',

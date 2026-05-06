@@ -45,6 +45,7 @@ const tabGroups: TabGroup[] = [
       { id: 'grocery-list', label: 'Grocery List', icon: ShoppingCart, description: 'Shopping' },
       { id: 'my-pantry', label: 'My Pantry', icon: Package, description: 'Inventory' },
       { id: 'favorites', label: 'Favorites', icon: Heart, description: 'Saved meals' },
+      { id: 'recipes', label: 'Recipe Library', icon: BookOpen, description: 'Browse 101+' },
     ],
   },
   {

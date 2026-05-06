@@ -3,9 +3,10 @@
  * Shows when a user tries to access a feature above their tier.
  * Displays the required tier, feature description, and upgrade CTA.
  */
-import React from 'react';
-import { Lock, Crown, Sparkles, ArrowRight, Zap, Users, Shield } from 'lucide-react';
+import React, { useState } from 'react';
+import { Lock, Crown, Sparkles, ArrowRight, Zap, Users, Shield, Loader2 } from 'lucide-react';
 import { useSubscription, type GatedFeature, type SubscriptionTier } from '../../contexts/SubscriptionContext';
+import { createCheckoutSession } from '../../services/billingService';
 
 interface UpgradeGateProps {
   feature: GatedFeature;
@@ -70,6 +71,20 @@ export default function UpgradeGate({ feature, title, description, compact }: Up
   const displayTitle = title || featureInfo?.title || 'Premium Feature';
   const displayDesc = description || featureInfo?.description || 'Upgrade to access this feature.';
 
+  const [upgrading, setUpgrading] = useState(false);
+  const handleUpgrade = async () => {
+    setUpgrading(true);
+    try {
+      await createCheckoutSession(requiredTier);
+    } catch (err) {
+      console.error('[UpgradeGate] Checkout error:', err);
+      // Fallback: scroll to pricing section on landing page
+      window.location.href = '/#pricing';
+    } finally {
+      setUpgrading(false);
+    }
+  };
+
   if (compact) {
     return (
       <div className="flex items-center gap-3 p-3 bg-gradient-to-r from-gray-50 to-gray-100 dark:from-gray-800/50 dark:to-gray-800/30 rounded-xl border border-gray-200 dark:border-gray-700">
@@ -82,9 +97,12 @@ export default function UpgradeGate({ feature, title, description, compact }: Up
             Requires <span className={`font-bold ${tierInfo.color}`}>{tierInfo.label}</span> plan
           </p>
         </div>
-        <button className={`flex items-center gap-1.5 px-3 py-1.5 bg-gradient-to-r ${tierInfo.gradient} text-white text-xs font-bold rounded-lg hover:opacity-90 transition-opacity flex-shrink-0`}>
-          Upgrade
-          <ArrowRight className="w-3 h-3" />
+        <button
+          onClick={handleUpgrade}
+          disabled={upgrading}
+          className={`flex items-center gap-1.5 px-3 py-1.5 bg-gradient-to-r ${tierInfo.gradient} text-white text-xs font-bold rounded-lg hover:opacity-90 transition-opacity flex-shrink-0 disabled:opacity-50`}
+        >
+          {upgrading ? <Loader2 className="w-3 h-3 animate-spin" /> : <>Upgrade<ArrowRight className="w-3 h-3" /></>}
         </button>
       </div>
     );
@@ -121,10 +139,20 @@ export default function UpgradeGate({ feature, title, description, compact }: Up
 
         {/* CTA */}
         <div>
-          <button className={`inline-flex items-center gap-2 px-6 py-3 bg-gradient-to-r ${tierInfo.gradient} text-white font-bold rounded-xl shadow-lg hover:opacity-90 transition-all hover:shadow-xl`}>
-            <Crown className="w-5 h-5" />
-            Upgrade to {tierInfo.label}
-            <ArrowRight className="w-4 h-4" />
+          <button
+            onClick={handleUpgrade}
+            disabled={upgrading}
+            className={`inline-flex items-center gap-2 px-6 py-3 bg-gradient-to-r ${tierInfo.gradient} text-white font-bold rounded-xl shadow-lg hover:opacity-90 transition-all hover:shadow-xl disabled:opacity-50`}
+          >
+            {upgrading ? (
+              <Loader2 className="w-5 h-5 animate-spin" />
+            ) : (
+              <>
+                <Crown className="w-5 h-5" />
+                Upgrade to {tierInfo.label}
+                <ArrowRight className="w-4 h-4" />
+              </>
+            )}
           </button>
           <p className="text-xs text-gray-400 mt-3">Cancel anytime · No long-term commitment</p>
         </div>

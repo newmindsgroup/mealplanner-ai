@@ -1,4 +1,5 @@
 import { useState, lazy, Suspense } from 'react';
+import { useStore } from '../store/useStore';
 import Sidebar from './Sidebar';
 import WelcomeWidget from './WelcomeWidget';
 import DashboardHeader from './DashboardHeader';
@@ -26,6 +27,8 @@ const FitnessDashboard = lazy(() => import('./fitness/FitnessDashboard'));
 const NeuroAssessment = lazy(() => import('./assessment/NeuroAssessment'));
 const CrossDomainHealthReport = lazy(() => import('./reports/CrossDomainHealthReport'));
 const SupplementScheduleView = lazy(() => import('./shared/SupplementScheduleView'));
+const RecipeDiscovery = lazy(() => import('./recipes/RecipeDiscovery'));
+const SmartOnboarding = lazy(() => import('./onboarding/SmartOnboarding'));
 
 export type TabType =
   | 'home'
@@ -45,7 +48,8 @@ export type TabType =
   | 'fitness'
   | 'neuro-assessment'
   | 'health-report'
-  | 'supplements';
+  | 'supplements'
+  | 'recipes';
 
 // Tab loading spinner
 function TabLoadingFallback() {
@@ -60,8 +64,13 @@ function TabLoadingFallback() {
 }
 
 export default function Layout() {
+  const { people } = useStore();
   const [activeTab, setActiveTab] = useState<TabType>('home');
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [onboardingDismissed, setOnboardingDismissed] = useState(false);
+
+  // Show onboarding for first-time users (no profile data)
+  const showOnboarding = people.length === 0 && !onboardingDismissed;
 
   const renderContent = () => {
     switch (activeTab) {
@@ -101,6 +110,8 @@ export default function Layout() {
         return <CrossDomainHealthReport />;
       case 'supplements':
         return <SupplementScheduleView />;
+      case 'recipes':
+        return <RecipeDiscovery />;
       default:
         return <WeeklyPlanView />;
     }
@@ -112,6 +123,16 @@ export default function Layout() {
   };
 
   return (
+    <>
+    {showOnboarding && (
+      <Suspense fallback={<TabLoadingFallback />}>
+        <SmartOnboarding
+          onComplete={() => setOnboardingDismissed(true)}
+          onSkip={() => setOnboardingDismissed(true)}
+        />
+      </Suspense>
+    )}
+    {!showOnboarding && (
     <div className="flex h-screen overflow-hidden bg-gradient-to-br from-gray-50 via-white to-gray-50 dark:from-gray-950 dark:via-gray-900 dark:to-gray-950">
       {/* Mobile overlay */}
       {sidebarOpen && (
@@ -154,5 +175,7 @@ export default function Layout() {
       {/* Mobile Bottom Navigation */}
       <MobileBottomNav activeTab={activeTab} onTabChange={handleTabChange} />
     </div>
+    )}
+    </>
   );
 }
