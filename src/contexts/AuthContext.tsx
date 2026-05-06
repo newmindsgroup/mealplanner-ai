@@ -2,6 +2,7 @@
 import React, { createContext, useContext, useEffect, useState, useCallback } from 'react';
 import type { User, LoginCredentials, RegisterData, AuthState } from '../types/auth';
 import { authService } from '../services/authService';
+import { clearChatHistory } from '../services/chatService';
 
 interface AuthContextType extends AuthState {
   login: (credentials: LoginCredentials) => Promise<boolean>;
@@ -131,6 +132,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const logout = useCallback(async () => {
     setState((prev) => ({ ...prev, isLoading: true }));
     await authService.logout();
+    clearChatHistory(); // Wipe AI conversation memory on logout
     setState({
       user: null,
       token: null,

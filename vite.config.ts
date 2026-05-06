@@ -95,17 +95,13 @@ export default defineConfig({
           'pdf-vendor': ['jspdf', 'jspdf-autotable', 'html2canvas'],
           // Data
           'food-database': ['./src/data/bloodTypeFoods.ts'],
-          // Fitness module — large, loads on demand via lazy()
-          'fitness-module': [
-            './src/components/fitness/FitnessDashboard.tsx',
-            './src/components/fitness/WorkoutLibrary.tsx',
-            './src/components/fitness/WorkoutPlanView.tsx',
-            './src/components/fitness/WorkoutSessionTracker.tsx',
-          ],
           // Labs module
           'labs-module': [
             './src/components/labs/LabsRouter.tsx',
           ],
+          // NOTE: Fitness sub-tabs use React.lazy() inside FitnessDashboard
+          // so Vite automatically splits each sub-component into its own chunk.
+          // Do NOT group them manually — that defeats the lazy loading.
         }
       }
     }

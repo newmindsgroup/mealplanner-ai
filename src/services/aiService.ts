@@ -451,7 +451,7 @@ class AIService {
     messages: ChatMessage[],
     options: ChatCompletionOptions = {}
   ): Promise<string> {
-    const model = options.model || 'gpt-4-turbo-preview';
+    const model = options.model || 'gpt-4o';
     const maxTokens = options.maxTokens || 2000;
     const temperature = options.temperature ?? 0.7;
 

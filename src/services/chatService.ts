@@ -2,31 +2,34 @@ import { getAIService, AIError, AIErrorType } from './aiService';
 import { chatWithKnowledgeBase, getKnowledgeContext } from './knowledgeBaseService';
 import type { Person, WeeklyPlan, KnowledgeBaseFile } from '../types';
 
-const SYSTEM_PROMPT = `You are Meal Plan Assistant, an expert nutritionist and meal planning AI that specializes in blood type diets, metabolic balance, and personalized nutrition.
+const SYSTEM_PROMPT = `You are **Nourish AI**, the intelligent nutrition assistant inside Meal Plan Assistant — a premium, AI-first health platform. You are an expert in personalized nutrition, blood type diets, functional medicine, and fitness nutrition.
 
-Your capabilities include:
-- Creating weekly meal plans based on blood type compatibility
-- Analyzing supplement and medication labels for blood type conflicts
-- Providing nutritional guidance and meal modifications
-- Answering questions about food compatibility, recipes, and nutrition
-- Offering time-saving meal suggestions
-- Cultural and seasonal meal adaptations
+## Core Expertise
+- **Blood Type Nutrition** — D'Adamo blood type diet theory, lectin sensitivity, beneficial/neutral/avoid food lists for O, A, B, AB
+- **Meal Planning** — Weekly meal prep, batch cooking, macro balancing, caloric budgeting, cultural cuisine adaptation
+- **Label Analysis** — Ingredient parsing, additive identification, blood-type conflict flagging, allergen detection
+- **Fitness Nutrition** — Pre/post-workout meals, protein timing, hydration strategies, recovery nutrition
+- **Family Health** — Multi-member household planning, children's nutrition, elderly dietary needs, pregnancy considerations
+- **Grocery Optimization** — Seasonal shopping, budget-friendly swaps, pantry stocking strategies
 
-Always:
-- Provide clear, actionable advice
-- Reference blood type compatibility when relevant
-- Consider multiple family members' needs when planning
-- Suggest alternatives for allergies and dietary restrictions
-- Explain the "why" behind recommendations
-- Be supportive and encouraging
+## Response Guidelines
+1. **Be specific and actionable** — give exact foods, portions, and timing when possible
+2. **Always reference blood type** when the user's profile includes it
+3. **Use structured formatting** — headers, bullet points, numbered steps for clarity
+4. **Explain the science** — brief "why" behind each recommendation
+5. **Suggest alternatives** — always offer 2-3 options for allergies, preferences, or budget
+6. **Be encouraging** — celebrate progress, normalize setbacks, motivate consistency
+7. **Keep responses concise** — aim for 150-300 words unless detailed analysis is requested
 
-When asked about meal planning, always consider:
-- Blood type compatibility
-- Allergies and dietary restrictions
-- Cultural preferences
-- Time constraints
-- Budget considerations
-- Family size and composition`;
+## Blood Type Quick Reference
+- **Type O**: High protein (lean meats, fish), vegetables, fruits. Avoid: wheat, corn, dairy, legumes. Intense exercise.
+- **Type A**: Plant-forward (soy, grains, vegetables, fruits). Avoid: red meat, dairy, kidney beans. Calming exercise.
+- **Type B**: Balanced omnivore (meat, dairy, grains, vegetables). Avoid: chicken, corn, wheat, lentils. Moderate exercise.
+- **Type AB**: Mixed (seafood, tofu, dairy, greens). Avoid: red meat, kidney beans, corn, buckwheat. Combined exercise.
+
+## Contextual Awareness
+When user context is provided (family members, current meal plan, knowledge base), always personalize your response. Address family members by name when relevant.`;
+
 
 // Helpful offline tips when API is unavailable
 const OFFLINE_TIPS = {
@@ -199,6 +202,16 @@ If the problem persists, the service may be experiencing temporary issues.`;
   }
 }
 
+// ─── Conversation History (multi-turn memory) ─────────────────────────────
+// Maintains a rolling window of recent messages so the AI remembers context.
+const MAX_HISTORY = 10; // Keep last 10 messages (5 user + 5 assistant)
+let conversationHistory: { role: 'user' | 'assistant'; content: string }[] = [];
+
+/** Clear conversation history (e.g., on logout) */
+export function clearChatHistory() {
+  conversationHistory = [];
+}
+
 export async function chatWithAssistant(
   userMessage: string,
   context?: {
@@ -218,16 +231,16 @@ export async function chatWithAssistant(
   let contextInfo = '';
   if (context) {
     if (context.people && context.people.length > 0) {
-      contextInfo += `\n\nFamily Members:\n${context.people
+      contextInfo += `\n\n**Active Family Profiles:**\n${context.people
         .map(
           (p) =>
-            `- ${p.name}: Blood Type ${p.bloodType}, Age ${p.age}, Allergies: ${p.allergies.join(', ') || 'None'}, Goals: ${p.goals.join(', ') || 'None'}, Dietary: ${p.dietaryCodes.join(', ') || 'None'}`
+            `- **${p.name}**: Blood Type ${p.bloodType}, Age ${p.age}, Allergies: ${p.allergies.join(', ') || 'None'}, Goals: ${p.goals.join(', ') || 'None'}, Dietary: ${p.dietaryCodes.join(', ') || 'None'}`
         )
         .join('\n')}`;
     }
 
     if (context.currentPlan) {
-      contextInfo += `\n\nCurrent Weekly Plan: ${context.currentPlan.weekStart}`;
+      contextInfo += `\n\n**Current Weekly Plan:** Week starting ${context.currentPlan.weekStart}`;
     }
 
     if (context.knowledgeBase && context.knowledgeBase.length > 0) {
@@ -239,19 +252,37 @@ export async function chatWithAssistant(
     }
   }
 
-  const fullPrompt = userMessage + contextInfo;
+  // Add context to the user message (only for the current turn)
+  const enrichedMessage = contextInfo
+    ? `${userMessage}\n\n---\n[System Context — do not repeat this to the user]${contextInfo}`
+    : userMessage;
+
+  // Build full message history with system prompt
+  const messages: { role: 'user' | 'assistant' | 'system'; content: string }[] = [
+    { role: 'system', content: SYSTEM_PROMPT },
+    ...conversationHistory,
+    { role: 'user', content: enrichedMessage },
+  ];
 
   try {
     // Use enhanced knowledge base chat if knowledge base is available
+    let response: string;
     if (context?.knowledgeBase && context.knowledgeBase.length > 0) {
-      return await chatWithKnowledgeBase(userMessage, context.knowledgeBase, contextInfo);
+      response = await chatWithKnowledgeBase(userMessage, context.knowledgeBase, contextInfo);
+    } else {
+      response = await aiService.chat(messages);
     }
 
-    // Fallback to regular chat
-    const response = await aiService.chat([
-      { role: 'system', content: SYSTEM_PROMPT },
-      { role: 'user', content: fullPrompt },
-    ]);
+    // Save to conversation history (without system context injection)
+    conversationHistory.push(
+      { role: 'user', content: userMessage },
+      { role: 'assistant', content: response }
+    );
+
+    // Trim history to max size
+    if (conversationHistory.length > MAX_HISTORY * 2) {
+      conversationHistory = conversationHistory.slice(-MAX_HISTORY * 2);
+    }
 
     return response;
   } catch (error) {
