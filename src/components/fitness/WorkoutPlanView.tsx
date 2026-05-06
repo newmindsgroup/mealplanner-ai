@@ -1,7 +1,9 @@
-import React, { useState } from 'react';
-import { Zap, ChevronDown, ChevronUp, Clock, Flame, Dumbbell, RefreshCw, Play, Calendar } from 'lucide-react';
+import React, { useState, useEffect } from 'react';
+import { Zap, ChevronDown, ChevronUp, Clock, Flame, Dumbbell, RefreshCw, Play, Calendar, Sparkles } from 'lucide-react';
 import { generateWorkoutPlan } from '../../services/fitnessService';
 import type { WorkoutPlan, WorkoutDay, FitnessProfile } from '../../services/fitnessService';
+import SwarmAnalysisPanel from '../shared/SwarmAnalysisPanel';
+import { checkSwarmHealth, type SwarmHealthStatus } from '../../services/swarmService';
 
 interface Props {
   plan: WorkoutPlan | null;
@@ -181,6 +183,12 @@ function DayCard({ day, onStartWorkout }: { day: WorkoutDay; onStartWorkout?: (d
 export default function WorkoutPlanView({ plan, profile, onPlanGenerated, onStartWorkout }: Props) {
   const [generating, setGenerating] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [swarmHealth, setSwarmHealth] = useState<SwarmHealthStatus | null>(null);
+  const [showSwarmPanels, setShowSwarmPanels] = useState(false);
+
+  useEffect(() => {
+    checkSwarmHealth().then(setSwarmHealth).catch(() => {});
+  }, []);
 
   const handleGenerate = async () => {
     setGenerating(true);
@@ -281,6 +289,65 @@ export default function WorkoutPlanView({ plan, profile, onPlanGenerated, onStar
             <div className="p-4 bg-emerald-50 dark:bg-emerald-950/20 rounded-xl border border-emerald-100 dark:border-emerald-900/30">
               <p className="text-xs font-bold text-emerald-700 dark:text-emerald-400 mb-1">🌙 Recovery Tips</p>
               <p className="text-sm text-gray-700 dark:text-gray-300">{plan.weeklyRecoveryTips}</p>
+            </div>
+          )}
+
+          {/* NourishAI Exercise Intelligence */}
+          {swarmHealth?.status === 'healthy' && (
+            <div className="bg-white dark:bg-gray-800 rounded-2xl border border-gray-100 dark:border-gray-700 overflow-hidden">
+              <button
+                onClick={() => setShowSwarmPanels(!showSwarmPanels)}
+                className="w-full flex items-center justify-between px-4 py-3 text-left hover:bg-gray-50 dark:hover:bg-gray-750 transition-colors"
+              >
+                <div className="flex items-center gap-2">
+                  <div className="p-1 bg-gradient-to-r from-orange-500 to-rose-500 rounded-lg">
+                    <Sparkles className="w-3.5 h-3.5 text-white" />
+                  </div>
+                  <div>
+                    <span className="font-bold text-sm text-gray-900 dark:text-white">NourishAI Exercise Intelligence</span>
+                    <p className="text-[10px] text-gray-400">Exercise form demos, workout presentation</p>
+                  </div>
+                </div>
+                {showSwarmPanels ? <ChevronUp className="w-4 h-4 text-gray-400" /> : <ChevronDown className="w-4 h-4 text-gray-400" />}
+              </button>
+              {showSwarmPanels && (
+                <div className="px-4 pb-4 space-y-4 border-t border-gray-50 dark:border-gray-700 pt-4">
+                  <SwarmAnalysisPanel
+                    taskType="exercise_demo_video"
+                    context={{
+                      exercises: plan.days
+                        ?.filter(d => d.type !== 'Rest')
+                        .flatMap(d => d.exercises?.map(e => e.name) || [])
+                        .filter((v, i, a) => a.indexOf(v) === i)
+                        .slice(0, 10),
+                      planName: plan.planName,
+                    }}
+                    title="Exercise Form Demonstrations"
+                    description="Proper form guides and movement tutorials for the exercises in your plan."
+                    buttonLabel="Get Form Guides"
+                    accentColor="amber"
+                    gradientClasses="from-amber-50 to-orange-50 dark:from-amber-950/20 dark:to-orange-950/20"
+                  />
+
+                  <SwarmAnalysisPanel
+                    taskType="health_presentation"
+                    context={{
+                      presentationType: 'workout_plan',
+                      planName: plan.planName,
+                      weeklyFocus: plan.weeklyFocus,
+                      totalDays: plan.days?.length,
+                      sessions: plan.days?.filter(d => d.type !== 'Rest').length,
+                      totalVolume: plan.totalWeeklyVolume,
+                      progressionStrategy: plan.progressionStrategy,
+                    }}
+                    title="Workout Plan Slide Deck"
+                    description="Visual presentation of your weekly training plan — perfect for sharing with your trainer."
+                    buttonLabel="Create Slides"
+                    accentColor="violet"
+                    gradientClasses="from-violet-50 to-purple-50 dark:from-violet-950/20 dark:to-purple-950/20"
+                  />
+                </div>
+              )}
             </div>
           )}
         </>

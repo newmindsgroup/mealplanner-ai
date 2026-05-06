@@ -493,6 +493,28 @@ export default function NeuroReport() {
                 accentColor="rose"
                 gradientClasses="from-rose-50 to-pink-50 dark:from-rose-950/20 dark:to-pink-950/20"
               />
+
+              <SwarmAnalysisPanel
+                taskType="health_presentation"
+                context={{
+                  memberName: activePerson?.name,
+                  dominantNature: displayResult.dominantNature,
+                  primaryDeficiency: displayResult.primaryDeficiency,
+                  natureScores: displayResult.natureScores,
+                  deficiencyScores: displayResult.deficiencyScores,
+                  bloodType: activePerson?.bloodType,
+                  protocol: aiProtocol ? {
+                    dietary: aiProtocol.dietaryProtocol?.length,
+                    supplements: aiProtocol.supplementStack?.length,
+                    lifestyle: aiProtocol.lifestyleProtocol?.length,
+                  } : undefined,
+                }}
+                title="Health Protocol Slide Deck"
+                description="Visual presentation of your neuro-nutritional protocol — share with your doctor or healthcare team."
+                buttonLabel="Create Slide Deck"
+                accentColor="indigo"
+                gradientClasses="from-indigo-50 to-violet-50 dark:from-indigo-950/20 dark:to-violet-950/20"
+              />
             </div>
           )}
         </div>
