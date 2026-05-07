@@ -9,7 +9,7 @@
  */
 import { useState, useEffect } from 'react';
 import {
-  Activity, Brain, Dumbbell, Apple, FileText, Sparkles, Download,
+  Activity, Brain, Dumbbell, Apple, FileText, Sparkles, Download, Mail,
   ChevronDown, ChevronUp, Loader2, Heart, Zap, Shield, TrendingUp,
 } from 'lucide-react';
 import { useStore } from '../../store/useStore';
@@ -18,6 +18,7 @@ import SwarmAnalysisPanel from '../shared/SwarmAnalysisPanel';
 import { FeatureGuard } from '../shared/UpgradeGate';
 import { checkSwarmHealth, type SwarmHealthStatus } from '../../services/swarmService';
 import { generateHealthReportPDF } from '../../services/healthReportPDF';
+import { openDigestPreview } from '../../services/weeklyDigest';
 
 interface CrossDomainSummary {
   hasLabs: boolean;
@@ -142,7 +143,7 @@ export default function CrossDomainHealthReport() {
     <FeatureGuard feature="health_reports">
     <div className="space-y-6 animate-fade-in">
       {/* Hero Header */}
-      <div className="bg-gradient-to-br from-indigo-600 via-purple-600 to-pink-600 rounded-2xl p-6 text-white shadow-xl relative overflow-hidden">
+      <div id="tour-health-report-hero" className="bg-gradient-to-br from-indigo-600 via-purple-600 to-pink-600 rounded-2xl p-6 text-white shadow-xl relative overflow-hidden">
         <div className="absolute inset-0 bg-[url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNjAiIGhlaWdodD0iNjAiIHZpZXdCb3g9IjAgMCA2MCA2MCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48ZyBmaWxsPSJub25lIiBmaWxsLXJ1bGU9ImV2ZW5vZGQiPjxnIGZpbGw9IiNmZmYiIGZpbGwtb3BhY2l0eT0iMC4wNSI+PGNpcmNsZSBjeD0iMzAiIGN5PSIzMCIgcj0iMiIvPjwvZz48L2c+PC9zdmc+')] opacity-50" />
         <div className="relative z-10">
           <div className="flex items-center gap-3 mb-3">
@@ -158,6 +159,7 @@ export default function CrossDomainHealthReport() {
               </p>
             </div>
             <button
+              id="tour-health-report-download"
               onClick={async () => {
                 setPdfGenerating(true);
                 setPdfError(null);
@@ -176,6 +178,13 @@ export default function CrossDomainHealthReport() {
               ) : (
                 <><Download className="w-4 h-4" /> Download PDF</>
               )}
+            </button>
+            <button
+              onClick={() => openDigestPreview()}
+              className="flex items-center gap-2 px-4 py-2 bg-white/10 hover:bg-white/20 backdrop-blur-sm rounded-xl text-sm font-semibold text-white transition-all"
+              title="Preview weekly health email digest"
+            >
+              <Mail className="w-4 h-4" /> Email Digest
             </button>
           </div>
 
@@ -208,7 +217,7 @@ export default function CrossDomainHealthReport() {
       )}
 
       {/* Data Availability Cards */}
-      <div>
+      <div id="tour-health-report-data-sources">
         <button
           onClick={() => toggleSection('overview')}
           className="flex items-center justify-between w-full mb-3"

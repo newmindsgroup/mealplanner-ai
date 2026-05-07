@@ -170,7 +170,7 @@ export default function FitnessDashboard() {
   ];
 
   return (
-    <div className="space-y-6">
+    <div id="tour-fitness-dashboard" className="space-y-6">
       {/* Header card — member switcher + title */}
       <div className="bg-white dark:bg-gray-800 rounded-2xl border border-gray-100 dark:border-gray-700 p-4 space-y-3">
         <div className="flex items-center justify-between">
@@ -212,7 +212,7 @@ export default function FitnessDashboard() {
       </div>
 
       {/* Sub-nav tabs — horizontal scroll on mobile */}
-      <div className="-mx-1">
+      <div id="tour-fitness-workout-log" className="-mx-1">
         <div className="flex gap-1 overflow-x-auto pb-1 px-1 scrollbar-hide snap-x">
           {navTabs.map(({ id, label, icon: Icon }) => (
             <button
@@ -299,11 +299,13 @@ export default function FitnessDashboard() {
         />
       )}
       {activeTab === 'nutrition' && (
+        <div id="tour-fitness-nutrition-bridge">
         <NutritionFitnessBridge
           profile={profile}
           todayIsWorkoutDay={!!todayWorkout && todayWorkout.type !== 'Rest'}
           personName={selectedPerson?.name}
         />
+        </div>
       )}
       {activeTab === 'challenges' && (
         <FamilyChallenges personId={personId} personName={selectedPerson?.name} />

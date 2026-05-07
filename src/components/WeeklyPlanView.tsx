@@ -1,5 +1,5 @@
 import { useState, useMemo, useEffect } from 'react';
-import { Search, Heart, Download, Printer, Calendar as CalendarIcon, Clock, Volume2, Sparkles, Filter, TrendingUp, Award, Flame, ChevronDown, ChevronUp } from 'lucide-react';
+import { Search, Heart, Download, Printer, Calendar as CalendarIcon, Clock, Volume2, Sparkles, Filter, TrendingUp, Award, Flame, ChevronDown, ChevronUp, FileDown } from 'lucide-react';
 import { useStore } from '../store/useStore';
 import { format, startOfWeek, addDays } from 'date-fns';
 import MealCard from './MealCard';
@@ -12,6 +12,7 @@ import WorkoutDayCard from './fitness/WorkoutDayCard';
 import SwarmAnalysisPanel from './shared/SwarmAnalysisPanel';
 import { checkSwarmHealth, type SwarmHealthStatus } from '../services/swarmService';
 import type { HealthBenefit } from '../types';
+import { exportMealPlanPDF } from '../services/mealPlanExport';
 
 export default function WeeklyPlanView({ onNavigateToFitness }: { onNavigateToFitness?: () => void } = {}) {
   const { currentPlan, setCurrentPlan, people, addPlan, toggleFavorite, favoriteMeals } = useStore();
@@ -147,7 +148,7 @@ export default function WeeklyPlanView({ onNavigateToFitness }: { onNavigateToFi
   return (
     <div className="space-y-6 animate-fade-in">
       {/* Modern Header */}
-      <div className="card-elevated p-4 md:p-6 bg-gradient-to-r from-primary-50 via-white to-primary-50 dark:from-primary-950/20 dark:via-gray-900 dark:to-primary-950/20">
+      <div id="tour-meal-plan-header" className="card-elevated p-4 md:p-6 bg-gradient-to-r from-primary-50 via-white to-primary-50 dark:from-primary-950/20 dark:via-gray-900 dark:to-primary-950/20">
         <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
           <div className="flex-1 min-w-0">
             <div className="flex items-center gap-2 mb-2">
@@ -196,6 +197,15 @@ export default function WeeklyPlanView({ onNavigateToFitness }: { onNavigateToFi
               <span className="hidden sm:inline">Print</span>
             </button>
             <button
+              onClick={() => exportMealPlanPDF().catch(e => alert(e.message))}
+              className="btn btn-secondary flex items-center gap-2 min-w-[44px] min-h-[44px]"
+              aria-label="Download meal plan PDF"
+            >
+              <FileDown className="w-4 h-4" />
+              <span className="hidden sm:inline">PDF</span>
+            </button>
+            <button
+              id="tour-meal-plan-generate"
               onClick={handleGeneratePlan}
               disabled={isGenerating}
               className="btn btn-primary flex items-center gap-2 flex-1 sm:flex-initial min-h-[44px]"

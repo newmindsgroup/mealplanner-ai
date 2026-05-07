@@ -241,12 +241,53 @@ async function executeBiomarkerEval(query: string): Promise<ToolResult> {
 }
 
 async function executePubMedSearch(query: string): Promise<ToolResult> {
-  const resp = await fetch(`/api/research/search?q=${encodeURIComponent(query)}&maxResults=3`);
-  const data = await resp.json();
+  // Try backend bridge first (for swarm-orchestrated searches)
+  try {
+    const resp = await fetch(`/api/research/search?q=${encodeURIComponent(query)}&maxResults=3`);
+    if (resp.ok) {
+      const data = await resp.json();
+      if (data.success && data.data?.length > 0) {
+        return {
+          tool: 'PubMed Research',
+          query,
+          data: data.data,
+          citation: 'Source: PubMed / NCBI (pubmed.ncbi.nlm.nih.gov)',
+        };
+      }
+    }
+  } catch {
+    // Backend unavailable — fall through to direct PubMed API
+  }
+
+  // Direct PubMed E-utilities API (no backend required)
+  try {
+    const { searchPubMed, formatCitation } = await import('./pubmedService');
+    const result = await searchPubMed(query, 3);
+    if (result.articles.length > 0) {
+      return {
+        tool: 'PubMed Research (Direct)',
+        query,
+        data: result.articles.map(a => ({
+          pmid: a.pmid,
+          title: a.title,
+          authors: a.authors.join(', '),
+          journal: a.journal,
+          year: a.year,
+          abstract: a.abstract.slice(0, 500),
+          url: a.url,
+          citation: formatCitation(a),
+        })),
+        citation: `Source: PubMed / NCBI — ${result.totalResults} total results (pubmed.ncbi.nlm.nih.gov)`,
+      };
+    }
+  } catch (err) {
+    console.warn('[PubMed Direct] Failed:', err);
+  }
+
   return {
     tool: 'PubMed Research',
     query,
-    data: data.success ? data.data : [],
+    data: [],
     citation: 'Source: PubMed / NCBI (pubmed.ncbi.nlm.nih.gov)',
   };
 }

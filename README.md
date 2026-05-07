@@ -279,6 +279,8 @@ mealplanner-ai/
 │   └── package.json              # Backend dependencies
 ├── install/                      # PHP web installer (for cPanel)
 ├── docs/                         # Project documentation
+│   ├── FEATURES.md              # Complete feature reference (19 modules)
+│   ├── USE_CASES.md             # 25 user scenarios with step-by-step flows
 │   ├── ARCHITECTURE.md           # Detailed architecture guide
 │   ├── API_ENDPOINTS.md          # Complete API reference
 │   ├── DATABASE_SCHEMA.md        # Database design documentation

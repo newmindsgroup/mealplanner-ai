@@ -88,7 +88,7 @@ export default function WelcomeWidget({ onNavigate }: WelcomeWidgetProps) {
   ];
 
   return (
-    <div className="space-y-6">
+    <div id="tour-welcome-widget" className="space-y-6">
       {/* Hero greeting */}
       <div className="relative overflow-hidden bg-gradient-to-br from-primary-500 via-primary-600 to-emerald-600 rounded-2xl p-6 sm:p-8 text-white">
         <div className="relative z-10">
@@ -125,10 +125,12 @@ export default function WelcomeWidget({ onNavigate }: WelcomeWidgetProps) {
       </div>
 
       {/* Proactive Health Intelligence Cards */}
-      <ProactiveInsightCards
-        onNavigate={onNavigate}
-        maxCards={4}
-      />
+      <div id="tour-proactive-insights">
+        <ProactiveInsightCards
+          onNavigate={onNavigate}
+          maxCards={4}
+        />
+      </div>
 
       {/* Quick action cards */}
       <div>

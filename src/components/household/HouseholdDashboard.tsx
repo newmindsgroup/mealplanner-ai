@@ -86,7 +86,7 @@ export default function HouseholdDashboard() {
   ];
 
   return (
-    <div className="space-y-6 animate-fade-in">
+    <div id="tour-household-dashboard" className="space-y-6 animate-fade-in">
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
@@ -98,7 +98,7 @@ export default function HouseholdDashboard() {
           </p>
         </div>
         {canInvite && (
-          <button onClick={() => setShowInviteModal(true)} className="btn-primary">
+          <button id="tour-household-members" onClick={() => setShowInviteModal(true)} className="btn-primary">
             <UserPlus className="w-5 h-5" />
             Invite Member
           </button>

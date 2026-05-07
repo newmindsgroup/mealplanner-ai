@@ -42,7 +42,7 @@ export default function SupplementScheduleView() {
   }, [schedule]);
 
   return (
-    <div className="space-y-4">
+    <div id="tour-supplement-schedule" className="space-y-4">
       {/* Header */}
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-2">
@@ -61,7 +61,7 @@ export default function SupplementScheduleView() {
 
       {/* Conflicts warning */}
       {conflicts.length > 0 && (
-        <div className="bg-amber-50 dark:bg-amber-950/20 rounded-xl p-3 border border-amber-200 dark:border-amber-800/40">
+        <div id="tour-supplement-interactions" className="bg-amber-50 dark:bg-amber-950/20 rounded-xl p-3 border border-amber-200 dark:border-amber-800/40">
           <div className="flex items-start gap-2">
             <AlertTriangle className="w-4 h-4 text-amber-500 flex-shrink-0 mt-0.5" />
             <div>
@@ -77,7 +77,7 @@ export default function SupplementScheduleView() {
       )}
 
       {/* Schedule by time */}
-      <div className="space-y-3">
+      <div id="tour-supplement-timing" className="space-y-3">
         {TIME_SLOTS.map(slot => {
           const supplements = schedule[slot.key] || [];
           if (supplements.length === 0) return null;

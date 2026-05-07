@@ -162,7 +162,7 @@ export default function BloodTypeFoodGuide() {
   }
 
   return (
-    <div className="space-y-6 animate-fade-in">
+    <div id="tour-food-guide" className="space-y-6 animate-fade-in">
       {/* Header */}
       <div className="card p-6 bg-gradient-to-r from-green-50 via-white to-green-50 dark:from-green-950/20 dark:via-gray-900 dark:to-green-950/20">
         <div className="flex items-center gap-3 mb-4">
@@ -290,7 +290,7 @@ export default function BloodTypeFoodGuide() {
       <div className="card p-4 space-y-4">
         {/* Search and Action Buttons */}
         <div className="flex gap-3">
-          <div className="flex-1 relative">
+          <div id="tour-food-guide-search" className="flex-1 relative">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
             <input
               type="text"
@@ -377,7 +377,7 @@ export default function BloodTypeFoodGuide() {
           </div>
 
           {/* Meal Type Filter */}
-          <div className="flex gap-1 p-1 bg-gray-100 dark:bg-gray-800 rounded-lg">
+          <div id="tour-food-guide-categories" className="flex gap-1 p-1 bg-gray-100 dark:bg-gray-800 rounded-lg">
             <button
               onClick={() => setSelectedMealType('all')}
               className={`px-3 py-1.5 rounded text-sm font-medium transition-colors ${

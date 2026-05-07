@@ -348,6 +348,7 @@ export default function RecipeDiscovery() {
         </div>
         <div className="flex items-center gap-2">
           <button
+            id="tour-recipe-filters"
             onClick={() => setShowFilters(!showFilters)}
             className={`flex items-center gap-1.5 px-3 py-2 rounded-xl text-sm font-semibold transition-all ${
               showFilters || activeFilterCount > 0
@@ -367,7 +368,7 @@ export default function RecipeDiscovery() {
       </div>
 
       {/* Search bar */}
-      <div className="relative">
+      <div id="tour-recipe-search" className="relative">
         <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
         <input
           type="text"
@@ -384,7 +385,7 @@ export default function RecipeDiscovery() {
       </div>
 
       {/* Category tabs */}
-      <div className="flex gap-2 overflow-x-auto pb-1 scrollbar-none">
+      <div id="tour-recipe-categories" className="flex gap-2 overflow-x-auto pb-1 scrollbar-none">
         {CATEGORIES.map(cat => {
           const Icon = cat.icon;
           const isActive = selectedCategory === cat.id;
@@ -489,7 +490,7 @@ export default function RecipeDiscovery() {
       </p>
 
       {/* Recipe grid */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+      <div id="tour-recipe-grid" className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
         {filteredRecipes.map(recipe => (
           <RecipeCard
             key={recipe.name}

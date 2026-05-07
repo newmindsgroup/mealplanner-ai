@@ -77,7 +77,7 @@ export default function LabsDashboard() {
   }
 
   return (
-    <div className="max-w-7xl mx-auto p-6">
+    <div id="tour-labs-dashboard" className="max-w-7xl mx-auto p-6">
       {/* Header */}
       <div className="flex justify-between items-center mb-6">
         <div>
@@ -85,6 +85,7 @@ export default function LabsDashboard() {
           <p className="text-gray-600 mt-1">Track and analyze blood work results</p>
         </div>
         <a
+          id="tour-labs-scan"
           href="#/labs/scan"
           className="flex items-center gap-2 px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
         >
@@ -290,6 +291,7 @@ export default function LabsDashboard() {
             </a>
 
             <a
+              id="tour-labs-trends"
               href="#/labs/trends"
               className="bg-white rounded-lg shadow-md p-6 hover:shadow-lg transition-shadow"
             >

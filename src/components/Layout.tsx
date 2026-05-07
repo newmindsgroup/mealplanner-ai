@@ -6,6 +6,7 @@ import DashboardHeader from './DashboardHeader';
 import MobileBottomNav from './MobileBottomNav';
 import ChatPanel from './ChatPanel';
 import APIStatusIndicator from './APIStatusIndicator';
+import HelpCenter from './shared/HelpCenter';
 
 // ─── Lazy-loaded Dashboard Tabs ──────────────────────────────────────────────
 // Each tab is dynamically imported — only loads when the user navigates to it.
@@ -170,6 +171,7 @@ export default function Layout() {
           </div>
         </main>
         <ChatPanel activeTab={activeTab} />
+        <HelpCenter activeTab={activeTab} />
       </div>
 
       {/* Mobile Bottom Navigation */}

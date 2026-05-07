@@ -111,7 +111,7 @@ export default function NeuroReport() {
   const hasDrift = Object.values(driftModifiers).some((v) => v !== 0);
 
   return (
-    <div className="space-y-6 animate-fade-in">
+    <div id="tour-neuro-results" className="space-y-6 animate-fade-in">
       {/* Header */}
       <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm p-6 border border-gray-100 dark:border-gray-700">
         <div className="flex justify-between items-start mb-6">
