@@ -15,6 +15,8 @@ import SessionExpiryNotice from './components/SessionExpiryNotice';
 import OfflineIndicator from './components/OfflineIndicator';
 
 const NourishAIOnboarding = React.lazy(() => import('./components/onboarding/NourishAIOnboarding'));
+const MissionControlLayout = React.lazy(() => import('./components/admin/MissionControlLayout'));
+const AdminProtectedRoute = React.lazy(() => import('./components/admin/AdminProtectedRoute'));
 
 // Error Boundary Component
 class AppErrorBoundary extends Component<
@@ -251,6 +253,13 @@ function App() {
           <Route path="/register" element={isAuthenticated ? <Navigate to="/dashboard" replace /> : <RegisterPage />} />
           <Route path="/forgot-password" element={<ForgotPasswordPage />} />
           <Route path="/accept-invitation" element={<AcceptInvitationPage />} />
+          
+          {/* Super Admin Mission Control */}
+          <Route path="/admin/mc/*" element={
+            <AdminProtectedRoute>
+              <MissionControlLayout />
+            </AdminProtectedRoute>
+          } />
           
           {/* Protected dashboard routes */}
           <Route path="/dashboard/*" element={

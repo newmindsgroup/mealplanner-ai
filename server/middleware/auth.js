@@ -1,7 +1,8 @@
 // Authentication Middleware
 const jwt = require('jsonwebtoken');
+const { v4: uuidv4 } = require('uuid');
 const config = require('../config/config');
-const { queryOne } = require('../config/database');
+const { query, queryOne } = require('../config/database');
 
 /**
  * Verify JWT token and attach user to request
@@ -21,9 +22,9 @@ async function authenticateToken(req, res, next) {
     // Verify token
     const decoded = jwt.verify(token, config.jwt.secret);
 
-    // Get user from database
+    // Get user from database (include role)
     const user = await queryOne(
-      'SELECT id, email, name, email_verified FROM users WHERE id = ?',
+      'SELECT id, email, name, email_verified, role FROM users WHERE id = ?',
       [decoded.userId]
     );
 
@@ -154,11 +155,44 @@ function requireHouseholdAdmin(req, res, next) {
   next();
 }
 
+/**
+ * Require super admin role (platform-level)
+ * Logs admin access attempts to audit_logs
+ */
+async function requireSuperAdmin(req, res, next) {
+  if (!req.user || req.user.role !== 'super_admin') {
+    // Log unauthorized admin access attempt
+    try {
+      await query(
+        `INSERT INTO audit_logs (id, actor_id, actor_email, action, details, ip_address)
+         VALUES (?, ?, ?, 'admin.access_denied', ?, ?)`,
+        [
+          uuidv4(),
+          req.userId || null,
+          req.user?.email || null,
+          JSON.stringify({ path: req.path, method: req.method }),
+          req.ip,
+        ]
+      );
+    } catch {
+      // Silent failure — audit log should never block auth
+    }
+
+    return res.status(403).json({
+      success: false,
+      error: 'Super admin access required',
+    });
+  }
+
+  next();
+}
+
 module.exports = {
   authenticateToken,
   optionalAuth,
   requireEmailVerification,
   requireHouseholdAccess,
   requireHouseholdAdmin,
+  requireSuperAdmin,
 };
 

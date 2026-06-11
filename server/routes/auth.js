@@ -49,6 +49,7 @@ function createUserResponse(user) {
     id: user.id,
     email: user.email,
     name: user.name,
+    role: user.role || 'user',
     emailVerified: Boolean(user.email_verified),
     createdAt: user.created_at,
     lastLogin: user.last_login,

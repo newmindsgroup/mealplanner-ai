@@ -46,10 +46,45 @@ function getPreferredProvider(keys) {
   return null;
 }
 
+// ── Token cost estimation (rough averages) ─────────────────────────────────
+const COST_PER_1K = {
+  'gpt-4-turbo-preview': { input: 0.01, output: 0.03 },
+  'gpt-4o': { input: 0.005, output: 0.015 },
+  'gpt-4o-mini': { input: 0.00015, output: 0.0006 },
+  'claude-3-5-sonnet-20241022': { input: 0.003, output: 0.015 },
+  'claude-3-opus-20240229': { input: 0.015, output: 0.075 },
+  'claude-sonnet-4-20250514': { input: 0.003, output: 0.015 },
+};
+
+function estimateCost(model, tokensIn, tokensOut) {
+  const rates = COST_PER_1K[model] || { input: 0.003, output: 0.015 };
+  return (tokensIn / 1000) * rates.input + (tokensOut / 1000) * rates.output;
+}
+
+/**
+ * Attach AI usage metadata to the Express request (if available)
+ * The apiUsageLogger middleware picks this up.
+ */
+function attachUsage(req, provider, model, tokensIn, tokensOut) {
+  if (req) {
+    req._aiUsage = {
+      provider,
+      model,
+      tokensInput: tokensIn,
+      tokensOutput: tokensOut,
+      costUsd: estimateCost(model, tokensIn, tokensOut),
+    };
+  }
+}
+
 /**
  * Chat completion with automatic provider selection
+ * @param {Array} messages - Chat messages
+ * @param {Object} options - Provider/model options
+ * @param {string|null} userId - User ID for key lookup
+ * @param {Object|null} req - Express request (for usage tracking)
  */
-async function chat(messages, options = {}, userId = null) {
+async function chat(messages, options = {}, userId = null, req = null) {
   const keys = await getAIKeys(userId);
   const provider = options.provider || getPreferredProvider(keys);
 
@@ -58,9 +93,9 @@ async function chat(messages, options = {}, userId = null) {
   }
 
   if (provider === 'anthropic' && keys.anthropic) {
-    return chatAnthropic(messages, options, keys.anthropic);
+    return chatAnthropic(messages, options, keys.anthropic, req);
   } else if (provider === 'openai' && keys.openai) {
-    return chatOpenAI(messages, options, keys.openai);
+    return chatOpenAI(messages, options, keys.openai, req);
   } else {
     throw new Error(`${provider} API key not available`);
   }
@@ -69,11 +104,12 @@ async function chat(messages, options = {}, userId = null) {
 /**
  * Chat with OpenAI
  */
-async function chatOpenAI(messages, options = {}, apiKey) {
+async function chatOpenAI(messages, options = {}, apiKey, req = null) {
   const openai = new OpenAI({ apiKey });
+  const model = options.model || 'gpt-4-turbo-preview';
 
   const response = await openai.chat.completions.create({
-    model: options.model || 'gpt-4-turbo-preview',
+    model,
     messages: messages.map(m => ({
       role: m.role,
       content: m.content,
@@ -83,14 +119,19 @@ async function chatOpenAI(messages, options = {}, apiKey) {
     response_format: options.json ? { type: 'json_object' } : undefined,
   });
 
+  // Track token usage
+  const usage = response.usage || {};
+  attachUsage(req, 'openai', model, usage.prompt_tokens || 0, usage.completion_tokens || 0);
+
   return response.choices[0].message.content;
 }
 
 /**
  * Chat with Anthropic Claude
  */
-async function chatAnthropic(messages, options = {}, apiKey) {
+async function chatAnthropic(messages, options = {}, apiKey, req = null) {
   const anthropic = new Anthropic({ apiKey });
+  const model = options.model || 'claude-3-5-sonnet-20241022';
 
   // Separate system messages from user/assistant messages
   const systemMessages = messages.filter(m => m.role === 'system');
@@ -99,7 +140,7 @@ async function chatAnthropic(messages, options = {}, apiKey) {
   const systemPrompt = systemMessages.map(m => m.content).join('\n\n');
 
   const response = await anthropic.messages.create({
-    model: options.model || 'claude-3-5-sonnet-20241022',
+    model,
     max_tokens: options.maxTokens || 2000,
     temperature: options.temperature !== undefined ? options.temperature : 0.7,
     system: systemPrompt || undefined,
@@ -108,6 +149,10 @@ async function chatAnthropic(messages, options = {}, apiKey) {
       content: m.content,
     })),
   });
+
+  // Track token usage
+  const usage = response.usage || {};
+  attachUsage(req, 'anthropic', model, usage.input_tokens || 0, usage.output_tokens || 0);
 
   return response.content[0].text;
 }

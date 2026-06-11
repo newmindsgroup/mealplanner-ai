@@ -1,0 +1,353 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>NourishAI | Investor & Leadership Dashboard</title>
+<meta name="description" content="Platform valuation, feature breakdown, and exit strategy for NourishAI health intelligence platform.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<script src="https://unpkg.com/lucide@latest"></script>
+<link rel="stylesheet" href="styles.css">
+</head>
+<body>
+<!-- NAV -->
+<nav id="main-nav">
+  <div class="nav-inner">
+    <div class="nav-brand"><i data-lucide="activity" class="brand-icon"></i> NourishAI</div>
+    <div class="nav-links">
+      <a href="#valuation" class="nav-link">Valuation</a>
+      <a href="#features" class="nav-link">Platform</a>
+      <a href="#market" class="nav-link">Market</a>
+      <a href="#cost" class="nav-link">Build Cost</a>
+      <a href="#exit" class="nav-link">Exit</a>
+    </div>
+  </div>
+</nav>
+
+<!-- HERO -->
+<header id="hero">
+  <div class="hero-bg-grid"></div>
+  <div class="hero-glow hero-glow-1"></div>
+  <div class="hero-glow hero-glow-2"></div>
+  <div class="hero-content">
+    <div class="hero-badge">CONFIDENTIAL | INVESTOR BRIEF</div>
+    <h1>NourishAI<br><span class="hero-gradient-text">Health Intelligence Platform</span></h1>
+    <p class="hero-sub">A full-stack, AI-powered nutrition, fitness, and clinical health management platform, built, tested, and production-ready.</p>
+    <div class="hero-stats">
+      <div class="hero-stat" data-count="22">
+        <span class="hero-stat-num" id="stat-modules">0</span>
+        <span class="hero-stat-label">Platform Modules</span>
+      </div>
+      <div class="hero-stat" data-count="52">
+        <span class="hero-stat-num" id="stat-services">0</span>
+        <span class="hero-stat-label">Service Files</span>
+      </div>
+      <div class="hero-stat" data-count="100">
+        <span class="hero-stat-num" id="stat-components">0</span>
+        <span class="hero-stat-label">UI Components</span>
+      </div>
+      <div class="hero-stat" data-count="25">
+        <span class="hero-stat-num" id="stat-tables">0</span>
+        <span class="hero-stat-label">DB Tables</span>
+      </div>
+    </div>
+  </div>
+</header>
+
+<!-- VALUATION SECTION -->
+<section id="valuation" class="section">
+  <div class="container">
+    <div class="section-header">
+      <span class="section-tag"><i data-lucide="dollar-sign"></i> Platform Valuation</span>
+      <h2>What is NourishAI Worth?</h2>
+      <p>Based on replacement cost, comparable SaaS exits, and revenue multiple analysis.</p>
+    </div>
+    <div class="valuation-grid">
+      <div class="val-card val-primary">
+        <div class="val-card-label">Conservative Estimate</div>
+        <div class="val-card-amount">$1.8M</div>
+        <div class="val-card-basis">Asset-based (rebuild cost + IP)</div>
+        <ul class="val-details">
+          <li><span>Engineering rebuild</span><span>$1.2M</span></li>
+          <li><span>AI/ML systems</span><span>$280K</span></li>
+          <li><span>Data assets (1.5MB curated)</span><span>$120K</span></li>
+          <li><span>Design & UX</span><span>$200K</span></li>
+        </ul>
+      </div>
+      <div class="val-card val-highlight">
+        <div class="val-card-badge">RECOMMENDED</div>
+        <div class="val-card-label">Fair Market Value</div>
+        <div class="val-card-amount">$3.2M</div>
+        <div class="val-card-basis">Revenue potential × 8x multiple</div>
+        <ul class="val-details">
+          <li><span>ARR potential (10K users)</span><span>$400K</span></li>
+          <li><span>SaaS multiple (8×)</span><span>$3.2M</span></li>
+          <li><span>Comparable exits median</span><span>$2.8–4M</span></li>
+          <li><span>Strategic premium</span><span>+15-25%</span></li>
+        </ul>
+      </div>
+      <div class="val-card val-premium">
+        <div class="val-card-label">Strategic Acquirer</div>
+        <div class="val-card-amount">$5M+</div>
+        <div class="val-card-basis">Strategic value to health/fitness co</div>
+        <ul class="val-details">
+          <li><span>Platform as module</span><span>$2.5M</span></li>
+          <li><span>AI engine licensing</span><span>$800K</span></li>
+          <li><span>User data moat</span><span>$700K</span></li>
+          <li><span>Integration savings</span><span>$1M+</span></li>
+        </ul>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- FEATURES SECTION -->
+<section id="features" class="section section-dark">
+  <div class="container">
+    <div class="section-header">
+      <span class="section-tag">🔬 Platform Modules</span>
+      <h2>22 Integrated Feature Modules</h2>
+      <p>Each module is a standalone product that competitors charge $10–50/mo for individually.</p>
+    </div>
+    <div class="features-grid" id="features-grid"></div>
+  </div>
+</section>
+
+<!-- USE CASE LIBRARY -->
+<section id="usecases" class="section">
+  <div class="container">
+    <div class="section-header">
+      <span class="section-tag"><i data-lucide="network"></i> Multi-Agent AI Ecosystem</span>
+      <h2>NourishAI Multi-Agent Capabilities</h2>
+      <p>The platform doesn't just use a standard chatbot. It leverages an orchestrated multi-agent swarm, where specialized AI personas collaborate to research, analyze, and generate health data.</p>
+    </div>
+    
+    <div class="usecase-filters" id="usecase-filters">
+      <button class="filter-btn active" data-filter="all">All Swarm Capabilities</button>
+      <button class="filter-btn" data-filter="research">Research & Orchestration</button>
+      <button class="filter-btn" data-filter="analytics">Data Analytics</button>
+      <button class="filter-btn" data-filter="generative">Generative & Reports</button>
+      <button class="filter-btn" data-filter="tools">Custom AI Tools</button>
+    </div>
+    
+    <div class="usecases-grid" id="usecases-grid"></div>
+  </div>
+</section>
+
+<!-- COMPETITIVE MARKET -->
+<section id="market" class="section section-dark">
+  <div class="container">
+    <div class="section-header">
+      <span class="section-tag"><i data-lucide="bar-chart-2"></i> Market Comparison</span>
+      <h2>Replacing NourishAI Requires 8+ Subscriptions</h2>
+      <p>Total monthly cost to replicate this platform with existing market tools.</p>
+    </div>
+    <div class="market-table-wrap">
+      <table class="market-table" id="market-table">
+        <thead>
+          <tr>
+            <th>Feature</th>
+            <th>Competitor</th>
+            <th>Monthly Cost</th>
+            <th>NourishAI</th>
+          </tr>
+        </thead>
+        <tbody></tbody>
+        <tfoot>
+          <tr>
+            <td colspan="2"><strong>Total Monthly Cost to Replicate</strong></td>
+            <td id="market-total" class="market-total"></td>
+            <td class="market-included">✅ All Included</td>
+          </tr>
+        </tfoot>
+      </table>
+    </div>
+    <div class="market-callout">
+      <div class="market-callout-num" id="annual-savings">$0</div>
+      <div class="market-callout-label">Annual savings vs. assembling competitor stack<br><span class="text-muted">And none of them integrate with each other</span></div>
+    </div>
+  </div>
+</section>
+
+<!-- BUILD COST -->
+<section id="cost" class="section section-dark">
+  <div class="container">
+    <div class="section-header">
+      <span class="section-tag"><i data-lucide="layers"></i> Rebuild Cost Analysis</span>
+      <h2>What Would It Cost to Build From Scratch?</h2>
+      <p>Engineering hours, specialist rates, and timeline to replicate this platform.</p>
+    </div>
+    <div class="cost-grid" id="cost-grid"></div>
+    <div class="cost-summary">
+      <div class="cost-summary-item">
+        <div class="cost-summary-label">Total Engineering Cost</div>
+        <div class="cost-summary-value" id="total-eng-cost">$0</div>
+      </div>
+      <div class="cost-summary-item">
+        <div class="cost-summary-label">Estimated Timeline</div>
+        <div class="cost-summary-value">18–24 months</div>
+      </div>
+      <div class="cost-summary-item">
+        <div class="cost-summary-label">Team Size Required</div>
+        <div class="cost-summary-value">6–8 engineers</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- TECH STACK -->
+<section id="tech" class="section">
+  <div class="container">
+    <div class="section-header">
+      <span class="section-tag"><i data-lucide="settings"></i> Technical Assets</span>
+      <h2>Production-Grade Tech Stack</h2>
+      <p>Enterprise architecture with modern tooling, automated tests, and deployment infrastructure.</p>
+    </div>
+    <div class="tech-grid">
+      <div class="tech-card"><div class="tech-icon"><i data-lucide="atom"></i></div><h3>React 18 + TypeScript</h3><p>100+ typed components with Zustand state management</p></div>
+      <div class="tech-card"><div class="tech-icon"><i data-lucide="rocket"></i></div><h3>Node.js + Express</h3><p>22 route files, 35+ REST endpoints, JWT auth</p></div>
+      <div class="tech-card"><div class="tech-icon"><i data-lucide="database"></i></div><h3>MySQL: 25 Tables</h3><p>Full relational schema with migrations</p></div>
+      <div class="tech-card"><div class="tech-icon"><i data-lucide="bot"></i></div><h3>Dual AI Engines</h3><p>OpenAI GPT-4 + Anthropic Claude with fallback</p></div>
+      <div class="tech-card"><div class="tech-icon"><i data-lucide="scan-line"></i></div><h3>OCR + Barcode</h3><p>Tesseract.js + ZXing for label & barcode scanning</p></div>
+      <div class="tech-card"><div class="tech-icon"><i data-lucide="credit-card"></i></div><h3>Stripe Billing</h3><p>Checkout, portal, webhooks, subscription tiers</p></div>
+      <div class="tech-card"><div class="tech-icon"><i data-lucide="pie-chart"></i></div><h3>Recharts Viz</h3><p>Interactive charts for labs, fitness, neuro data</p></div>
+      <div class="tech-card"><div class="tech-icon"><i data-lucide="flask-conical"></i></div><h3>PubMed Integration</h3><p>Live NCBI E-utilities for clinical citations</p></div>
+      <div class="tech-card"><div class="tech-icon"><i data-lucide="smartphone"></i></div><h3>PWA + Offline</h3><p>Installable, 72 precached entries, service worker</p></div>
+      <div class="tech-card"><div class="tech-icon"><i data-lucide="box"></i></div><h3>Docker + NGINX</h3><p>Production container orchestration</p></div>
+      <div class="tech-card"><div class="tech-icon"><i data-lucide="check-circle"></i></div><h3>Vitest Suite</h3><p>62 tests across 5 suites with jsdom</p></div>
+      <div class="tech-card"><div class="tech-icon"><i data-lucide="target"></i></div><h3>Driver.js Tours</h3><p>10 interactive onboarding tours</p></div>
+    </div>
+  </div>
+</section>
+
+<!-- EXIT STRATEGY -->
+<section id="exit" class="section section-dark">
+  <div class="container">
+    <div class="section-header">
+      <span class="section-tag"><i data-lucide="log-out"></i> Exit Strategy</span>
+      <h2>Paths to Liquidity</h2>
+      <p>Multiple viable exit paths based on platform maturity and market positioning.</p>
+    </div>
+    <div class="exit-grid">
+      <div class="exit-card">
+        <div class="exit-icon"><i data-lucide="building-2"></i></div>
+        <h3>Strategic Acquisition</h3>
+        <div class="exit-range">$3M - $5M+</div>
+        <p>Health/fitness companies (MyFitnessPal, Noom, Hims) seeking an AI-powered nutrition engine with clinical depth.</p>
+        <ul>
+          <li>Plug-in AI nutrition module</li>
+          <li>Blood type diet IP & database</li>
+          <li>Multi-tenant household architecture</li>
+          <li>Neurotransmitter assessment engine</li>
+        </ul>
+      </div>
+      <div class="exit-card">
+        <div class="exit-icon"><i data-lucide="briefcase"></i></div>
+        <h3>Private Equity / Roll-up</h3>
+        <div class="exit-range">$2M - $4M</div>
+        <p>PE firms rolling up health-tech SaaS products. Platform becomes part of a larger health ecosystem.</p>
+        <ul>
+          <li>Recurring revenue model ready</li>
+          <li>Multi-tier Stripe billing live</li>
+          <li>Household seats = expansion revenue</li>
+          <li>Low churn via data lock-in</li>
+        </ul>
+      </div>
+      <div class="exit-card">
+        <div class="exit-icon"><i data-lucide="trending-up"></i></div>
+        <h3>Scale & Grow (Retain)</h3>
+        <div class="exit-range">$400K ARR → $5M+ valuation</div>
+        <p>Scale to 10K paying users at $40/mo average. Compound with household expansion and B2B wellness contracts.</p>
+        <ul>
+          <li>$40 ARPU × 10K = $400K ARR</li>
+          <li>8–12x SaaS multiple at growth</li>
+          <li>B2B corporate wellness channel</li>
+          <li>White-label licensing opportunity</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- REVENUE MODEL -->
+<section id="revenue" class="section">
+  <div class="container">
+    <div class="section-header">
+      <span class="section-tag"><i data-lucide="credit-card"></i> Revenue Model</span>
+      <h2>Multi-Tier Subscription + Expansion</h2>
+    </div>
+    <div class="pricing-grid">
+      <div class="price-card">
+        <h3>Free</h3>
+        <div class="price-amount">$0<span>/mo</span></div>
+        <ul>
+          <li>Basic meal planning</li>
+          <li>Food guide (limited)</li>
+          <li>1 family member</li>
+          <li>Community recipes</li>
+        </ul>
+      </div>
+      <div class="price-card price-featured">
+        <div class="price-badge">MOST POPULAR</div>
+        <h3>Pro</h3>
+        <div class="price-amount">$29<span>/mo</span></div>
+        <ul>
+          <li>AI meal generation</li>
+          <li>Lab analysis + OCR</li>
+          <li>Brain assessment</li>
+          <li>5 family members</li>
+          <li>Pantry + grocery</li>
+          <li>PDF exports</li>
+        </ul>
+      </div>
+      <div class="price-card">
+        <h3>Clinical</h3>
+        <div class="price-amount">$79<span>/mo</span></div>
+        <ul>
+          <li>Everything in Pro</li>
+          <li>PubMed citations</li>
+          <li>Swarm multi-agent AI</li>
+          <li>Health reports for doctors</li>
+          <li>Unlimited members</li>
+          <li>Priority AI</li>
+        </ul>
+      </div>
+    </div>
+    
+    <div class="tokenomics-banner fade-up">
+      <div class="tokenomics-content">
+        <h3 class="tokenomics-title"><i data-lucide="coins"></i> AI Compute Tokenomics & API Reselling</h3>
+        <p class="tokenomics-desc">A forward-thinking, usage-based revenue stream. As users and B2B partners rely heavily on our Multi-Agent ecosystem for deep medical research, bulk OCR analysis, and complex document generation, they consume "Health Compute Tokens" beyond their base subscription limits.</p>
+        <ul class="tokenomics-list">
+          <li><i data-lucide="zap"></i> Micro-Transaction Top-Ups</li>
+          <li><i data-lucide="server"></i> B2B API Reselling</li>
+          <li><i data-lucide="cpu"></i> AI Compute Arbitrage</li>
+        </ul>
+      </div>
+      <div class="tokenomics-stats">
+        <div class="tokenomics-label">Gross Margin</div>
+        <div class="tokenomics-value">75%+</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- CTA -->
+<section id="cta" class="section section-cta">
+  <div class="container">
+    <h2>This platform is built. It's tested. It's ready.</h2>
+    <p>22 modules. 100+ components. 52 services. 25 database tables. Dual AI engines. Stripe billing. Docker deployment. All production-grade.</p>
+    <div class="cta-val">Estimated Platform Value: <strong>$1.8M – $5M+</strong></div>
+  </div>
+</section>
+
+<footer>
+  <div class="container">
+    <p>NourishAI | Confidential Investor Brief &copy; 2026 NewMinds Group. All rights reserved.</p>
+  </div>
+</footer>
+
+<script src="app.js"></script>
+</body>
+</html>

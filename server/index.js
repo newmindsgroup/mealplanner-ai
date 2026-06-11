@@ -11,6 +11,7 @@ const rateLimit = require('express-rate-limit');
 const config = require('./config/config');
 const { testConnection } = require('./config/database');
 const { errorHandler, notFoundHandler } = require('./middleware/errorHandler');
+const { apiUsageLogger } = require('./middleware/apiUsageLogger');
 
 // Create Express app
 const app = express();
@@ -53,6 +54,9 @@ const limiter = rateLimit({
   message: { success: false, error: 'Too many requests, please try again later' },
 });
 app.use('/api/', limiter);
+
+// API Usage Logging (must come after body parsing, before routes)
+app.use(apiUsageLogger());
 
 // Serve static files (uploaded files)
 app.use('/uploads', express.static(path.join(__dirname, '../uploads')));
@@ -149,6 +153,14 @@ try {
   console.warn('⚠️ Stripe billing routes skipped (stripe package not installed)');
 }
 
+// Super Admin Mission Control
+try {
+  app.use('/api/admin', require('./routes/admin'));
+  console.log('✅ Admin Mission Control routes loaded');
+} catch (err) {
+  console.warn('⚠️ Admin routes failed to load:', err.message);
+}
+
 // ============================================================================
 // SERVE FRONTEND (Production)
 // ============================================================================
@@ -204,6 +216,14 @@ async function startServer() {
       console.warn('[Migrations] Billing migrations skipped:', migErr.message);
     }
 
+    // Run admin migrations (super admin role, audit tables) — idempotent
+    try {
+      const { runAdminMigrations } = require('./database/adminMigrations');
+      await runAdminMigrations();
+    } catch (migErr) {
+      console.warn('[Migrations] Admin migrations skipped:', migErr.message);
+    }
+
     // Start listening
     const PORT = config.port;
     app.listen(PORT, () => {
@@ -223,6 +243,14 @@ async function startServer() {
         startFitnessCleanupJobs();
       } catch (jobErr) {
         console.warn('[Jobs] Fitness cleanup jobs failed to start:', jobErr.message);
+      }
+
+      // Start health monitor
+      try {
+        const { startHealthMonitor } = require('./jobs/healthMonitor');
+        startHealthMonitor();
+      } catch (jobErr) {
+        console.warn('[Jobs] Health monitor failed to start:', jobErr.message);
       }
     });
   } catch (error) {
