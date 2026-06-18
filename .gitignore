@@ -14,7 +14,8 @@ CREDENTIALS.md
 
 # API Configuration (contains sensitive keys)
 public/config.js
-config.js
+/config.js
+!server/config/config.js
 
 # Logs
 logs/

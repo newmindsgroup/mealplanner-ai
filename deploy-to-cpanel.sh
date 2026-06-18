@@ -9,9 +9,13 @@ echo "🚀 Creating cPanel Deployment Package"
 echo "======================================"
 echo ""
 
-# Load nvm if needed
+# Load nvm if needed (safely under set -e)
 export NVM_DIR="$HOME/.nvm"
-[ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh" 2>/dev/null || true
+if [ -s "$NVM_DIR/nvm.sh" ]; then
+    set +e
+    . "$NVM_DIR/nvm.sh" 2>/dev/null
+    set -e
+fi
 
 # Colors
 GREEN='\033[0;32m'

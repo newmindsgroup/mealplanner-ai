@@ -166,13 +166,13 @@ try {
 // ============================================================================
 
 if (config.nodeEnv === 'production') {
-  // Serve static files from public directory
-  app.use(express.static(path.join(__dirname, '../public')));
+  // Serve static files from dist directory
+  app.use(express.static(path.join(__dirname, '../dist')));
 
   // SPA fallback - serve index.html for all non-API routes
   app.get('*', (req, res) => {
     if (!req.path.startsWith('/api')) {
-      res.sendFile(path.join(__dirname, '../public/index.html'));
+      res.sendFile(path.join(__dirname, '../dist/index.html'));
     }
   });
 }
